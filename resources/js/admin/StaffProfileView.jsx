@@ -181,7 +181,7 @@ export default function StaffProfileView({ staff }) {
             </div>
 
             {zoom && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4" onClick={() => setZoom(null)}>
+                <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/85 p-4" onClick={() => setZoom(null)}>
                     <button className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white">
                         <X size={22} />
                     </button>

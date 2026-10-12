@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, CheckCircle2, Loader2, Search, X, XCircle } from 'lucide-react';
 import { initials } from '../lib/format';
 
@@ -54,13 +55,14 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
     if (!open) return null;
     const width = { sm: 'sm:max-w-md', md: 'sm:max-w-xl', lg: 'sm:max-w-3xl' }[size];
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+    // Rendered on <body> so the page's bottom menu and animated wrappers can never cover or clip it.
+    return createPortal(
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-4">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onClick={onClose} />
             <div
-                className={`animate-slide-up relative flex max-h-[92vh] w-full flex-col rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl ${width}`}
+                className={`animate-slide-up relative flex max-h-[92dvh] w-full flex-col rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl ${width}`}
             >
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+                <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div>
                         <h3 className="text-lg font-bold text-slate-900">{title}</h3>
                         {subtitle && <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>}
@@ -69,12 +71,13 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
                         <X size={20} />
                     </button>
                 </div>
-                <div className="overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">{children}</div>
                 {footer && (
-                    <div className="safe-bottom flex justify-end gap-2 border-t border-slate-100 px-5 py-4 sm:px-6">{footer}</div>
+                    <div className="safe-bottom flex shrink-0 justify-end gap-2 border-t border-slate-100 px-5 py-4 sm:px-6">{footer}</div>
                 )}
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }
 
