@@ -31,19 +31,22 @@ export function staffMessage(a, business, appUrl) {
         .join('\n');
 }
 
-/** WhatsApp message to the client / family about who is coming. Never includes any money. */
-export function clientMessage(a, business) {
+/**
+ * WhatsApp message to the client / family about who is coming. No money and no staff phone number;
+ * the client is given the admin's number to call instead.
+ */
+export function clientMessage(a, business, adminPhone) {
+    const helpPhone = adminPhone || business.business_phone;
     const s = a.staff || {};
     return [
         `*${business.business_name || 'Yours Home Healthcare'}*`,
         `Hello ${a.client?.name}, your caregiver has been assigned.`,
         '',
         `*Caregiver:* ${s.name}${s.designation ? ` (${s.designation})` : ''}`,
-        s.phone && `*Caregiver mobile:* ${s.phone}`,
         a.shift_hours && `*Shift:* ${shiftLine(a)}`,
         `*Starting:* ${formatDate(a.start_date)}`,
         '',
-        business.business_phone ? `For any help, please call us: ${business.business_phone}` : 'For any help, please contact our office.',
+        helpPhone ? `For any help, please call us: ${helpPhone}` : 'For any help, please contact our office.',
         'Thank you for trusting us. Your happiness is our success.',
     ]
         .filter((line) => line !== null && line !== undefined && line !== false)

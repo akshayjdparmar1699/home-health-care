@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Share2, UserRound, Users } from 'lucide-react';
 import api from '../lib/api';
+import { useAuth } from '../lib/auth';
 import { clientMessage, staffMessage } from '../lib/assignmentMessages';
 import ShareSheet from './ShareSheet';
 import { Modal } from './ui';
@@ -68,6 +69,7 @@ function Recipient({ icon: Icon, who, name, phone, message, onMore }) {
  * directions, the client gets the caregiver's details. Money is never sent to the wrong side.
  */
 export default function AssignmentShare({ assignment: a, open, onClose, title = 'Share assignment on WhatsApp' }) {
+    const { user } = useAuth();
     const [business, setBusiness] = useState(businessCache || {});
     const [more, setMore] = useState(null);
 
@@ -84,7 +86,7 @@ export default function AssignmentShare({ assignment: a, open, onClose, title = 
     if (!a) return null;
     const appUrl = `${window.location.origin}/staff`;
     const toStaff = staffMessage(a, business, appUrl);
-    const toClient = clientMessage(a, business);
+    const toClient = clientMessage(a, business, user?.phone);
     const staffPhone = a.staff?.profile?.whatsapp || a.staff?.phone;
 
     return (
@@ -107,7 +109,7 @@ export default function AssignmentShare({ assignment: a, open, onClose, title = 
                         message={toClient}
                         onMore={() => setMore({ text: toClient, phone: a.client?.phone, name: a.client?.name })}
                     />
-                    <p className="text-center text-[11px] text-slate-400">The staff message has their pay; the client message has no prices.</p>
+                    <p className="text-center text-[11px] text-slate-400">The staff message has their pay. The client message has no prices and no staff phone number.</p>
                 </div>
             </Modal>
             <ShareSheet
