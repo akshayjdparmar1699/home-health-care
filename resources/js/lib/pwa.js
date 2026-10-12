@@ -40,5 +40,17 @@ export function platform() {
     return 'desktop';
 }
 
+/**
+ * Admin and staff install as two separate apps. Point the page at the right manifest after
+ * in-app navigation too (e.g. "/" redirecting to "/admin"), not only on a full page load.
+ */
+export function syncManifest(path = window.location.pathname) {
+    const isAdmin = path === '/admin' || path.startsWith('/admin/');
+    const href = isAdmin ? '/manifest-admin.webmanifest' : '/manifest.webmanifest';
+    const link = document.querySelector('link[rel="manifest"]');
+    if (link && link.getAttribute('href') !== href) link.setAttribute('href', href);
+    document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', isAdmin ? 'YH Admin' : 'Yours Home');
+}
+
 /** Open the install guide from anywhere (e.g. a button in Profile). */
 export const openInstallGuide = () => window.dispatchEvent(new Event('hc:install-guide'));

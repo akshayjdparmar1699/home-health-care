@@ -10,8 +10,13 @@
     <title>Yours Home Healthcare</title>
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    @if (request()->is('admin', 'admin/*'))
+    <link rel="manifest" href="/manifest-admin.webmanifest">
+    <meta name="apple-mobile-web-app-title" content="YH Admin">
+    @else
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="apple-mobile-web-app-title" content="Yours Home">
+    @endif
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="application-name" content="Yours Home Healthcare">
     <meta name="format-detection" content="telephone=no">

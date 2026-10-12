@@ -1,9 +1,9 @@
 {
     "name": "Yours Home Healthcare",
     "short_name": "Yours Home",
-    "description": "Yours Home Healthcare: staff duty, shifts and billing",
+    "description": "Yours Home Healthcare: staff duty, shifts and earnings",
     "id": "/",
-    "start_url": "/?source=pwa",
+    "start_url": "/staff?source=pwa",
     "scope": "/",
     "display": "standalone",
     "display_override": ["standalone", "minimal-ui"],
@@ -19,6 +19,6 @@
     ],
     "shortcuts": [
         { "name": "My Duty", "short_name": "Duty", "url": "/staff", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-        { "name": "Admin Dashboard", "short_name": "Admin", "url": "/admin", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+        { "name": "My Earnings", "short_name": "Earnings", "url": "/staff/earnings", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
     ]
 }

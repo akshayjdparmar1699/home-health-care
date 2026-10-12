@@ -1,8 +1,10 @@
 /* Home Care service worker: app shell + static asset caching. API calls are never cached. */
-const VERSION = 'hc-v3';
+const VERSION = 'hc-v4';
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
-const PRECACHE = ['/', '/offline.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/brand/logo.png', '/brand/emblem.png'];
+const PRECACHE = ['/', '/offline.html', '/manifest.webmanifest', '/manifest-admin.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/brand/logo.png', '/brand/emblem.png'];
+
+const realmOf = (path) => (path === '/admin' || path.startsWith('/admin/') ? 'admin' : 'staff');
 
 self.addEventListener('install', (event) => {
     event.waitUntil(caches.open(SHELL).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
@@ -26,15 +28,17 @@ self.addEventListener('fetch', (event) => {
     if (url.origin === location.origin && (url.pathname.startsWith('/api/') || url.pathname === '/up')) return;
 
     // Page navigations: network first (fresh HTML / asset hashes), cached shell when offline.
+    // Admin and staff keep separate shells because each links its own install manifest.
     if (req.mode === 'navigate') {
+        const shellKey = realmOf(url.pathname) === 'admin' ? '/admin' : '/';
         event.respondWith(
             fetch(req)
                 .then((res) => {
                     const copy = res.clone();
-                    caches.open(SHELL).then((c) => c.put('/', copy));
+                    caches.open(SHELL).then((c) => c.put(shellKey, copy));
                     return res;
                 })
-                .catch(async () => (await caches.match('/')) || caches.match('/offline.html')),
+                .catch(async () => (await caches.match(shellKey)) || (await caches.match('/')) || caches.match('/offline.html')),
         );
         return;
     }
@@ -88,11 +92,12 @@ self.addEventListener('notificationclick', (event) => {
     const url = new URL(event.notification.data?.url || '/', self.location.origin).href;
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
-            for (const w of wins) {
-                if (w.url.startsWith(self.location.origin) && 'focus' in w) {
-                    w.navigate(url);
-                    return w.focus();
-                }
+            // Open admin alerts in the admin app and staff alerts in the staff app.
+            const realm = realmOf(new URL(url).pathname);
+            const win = wins.find((w) => w.url.startsWith(self.location.origin) && realmOf(new URL(w.url).pathname) === realm && 'focus' in w);
+            if (win) {
+                win.navigate(url);
+                return win.focus();
             }
             return self.clients.openWindow(url);
         }),

@@ -1,11 +1,12 @@
 import '../css/app.css';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/auth';
 import { Spinner, ToastProvider } from './components/ui';
 import ErrorBoundary from './components/ErrorBoundary';
 import OfflineBar from './components/OfflineBar';
-import './lib/pwa';
+import { syncManifest } from './lib/pwa';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import RegisterSuccess from './pages/RegisterSuccess';
@@ -49,6 +50,11 @@ function HomeRedirect() {
 }
 
 function App() {
+    const { pathname } = useLocation();
+    useEffect(() => {
+        syncManifest(pathname);
+    }, [pathname]);
+
     return (
         <Routes>
             <Route path="/" element={<HomeRedirect />} />
