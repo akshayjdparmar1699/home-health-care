@@ -1,0 +1,176 @@
+@import 'tailwindcss';
+
+@source '../js/**/*.jsx';
+@source '../views/**/*.blade.php';
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* Yours Home Healthcare: navy #24366D -> pink #D23B70 */
+    --color-brand-50: #eef1f9;
+    --color-brand-100: #dce2f2;
+    --color-brand-200: #b9c4e4;
+    --color-brand-300: #8c9dd0;
+    --color-brand-400: #5d73b6;
+    --color-brand-500: #3d5399;
+    --color-brand-600: #2d4283;
+    --color-brand-700: #24366d;
+    --color-brand-800: #1d2b57;
+    --color-brand-900: #162043;
+
+    --color-accent-50: #fdf0f5;
+    --color-accent-100: #fbe1eb;
+    --color-accent-200: #f6c2d6;
+    --color-accent-300: #ee97b8;
+    --color-accent-400: #e46592;
+    --color-accent-500: #d23b70;
+    --color-accent-600: #bb2f61;
+    --color-accent-700: #9c2650;
+    --color-accent-800: #7d1f41;
+    --color-accent-900: #5e1731;
+}
+
+@layer base {
+    html,
+    body {
+        @apply bg-slate-50 text-slate-800;
+        -webkit-tap-highlight-color: transparent;
+    }
+    input,
+    select,
+    textarea {
+        font-size: 16px; /* prevents iOS zoom on focus */
+    }
+    /* Grid/flex children default to min-width:auto, so one long line (tables, nowrap text)
+       would stretch the column past the screen. Let them shrink instead. */
+    .grid > *,
+    .flex > * {
+        min-width: 0;
+    }
+    /* `clip` (not `hidden`) stops sideways overflow without turning body into its own scroll box,
+       which would swallow mouse-wheel scrolling on desktop. */
+    html,
+    body {
+        overflow-x: clip;
+    }
+    html {
+        overscroll-behavior-y: none; /* no pull-to-refresh bounce, feels like a native app */
+    }
+    a,
+    button,
+    [role='button'],
+    input,
+    select,
+    textarea,
+    label {
+        touch-action: manipulation; /* removes double-tap zoom delay */
+    }
+    nav,
+    button {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+}
+
+@layer components {
+    .card {
+        @apply rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)];
+    }
+    .input {
+        @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[15px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:bg-slate-50;
+    }
+    .label {
+        @apply mb-1.5 block text-[13px] font-semibold text-slate-600;
+    }
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    }
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-accent-500/20 transition hover:brightness-110 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+        background-image: linear-gradient(100deg, var(--color-brand-700), var(--color-accent-500));
+    }
+    .btn-secondary {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50;
+    }
+    .btn-danger {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 bg-rose-600 text-white hover:bg-rose-700;
+    }
+    .btn-ghost {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 text-slate-600 hover:bg-slate-100;
+    }
+    .table-wrap {
+        @apply overflow-x-auto;
+    }
+    .table {
+        @apply w-full text-left text-sm;
+    }
+    .table th {
+        @apply whitespace-nowrap border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500;
+    }
+    .table td {
+        @apply whitespace-nowrap border-b border-slate-100 px-4 py-3;
+    }
+    .table tr:last-child td {
+        @apply border-b-0;
+    }
+}
+
+.safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-top {
+    padding-top: env(safe-area-inset-top);
+}
+/* pt-6 plus the notch / status-bar inset when installed as an app */
+.safe-top-6 {
+    padding-top: calc(env(safe-area-inset-top) + 1.5rem);
+}
+
+.bg-brand-gradient {
+    background-image: linear-gradient(120deg, var(--color-brand-700) 0%, #6a3a72 55%, var(--color-accent-500) 100%);
+}
+.text-brand-gradient {
+    background-image: linear-gradient(90deg, var(--color-brand-700), var(--color-accent-500));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+@keyframes page-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+.page-in {
+    animation: page-in 0.2s ease-out;
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    100% { transform: scale(1.35); opacity: 0; }
+}
+.pulse-ring::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: currentColor;
+    animation: pulse-ring 1.8s ease-out infinite;
+}
+
+@keyframes slide-up {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up {
+    animation: slide-up 0.25s ease-out;
+}
+
+@media print {
+    html,
+    body {
+        background: white !important;
+    }
+    @page {
+        margin: 14mm;
+    }
+}
