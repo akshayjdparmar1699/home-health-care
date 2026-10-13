@@ -18,7 +18,7 @@ class InstallManifestTest extends TestCase
 
     public function test_staff_pages_link_the_staff_app_manifest(): void
     {
-        foreach (['/', '/staff', '/staff/login', '/register'] as $path) {
+        foreach (['/staff', '/staff/login', '/register', '/client/register'] as $path) {
             $this->get($path)
                 ->assertOk()
                 ->assertSee('href="/manifest.webmanifest"', false)

@@ -1,8 +1,8 @@
 /* Home Care service worker: app shell + static asset caching. API calls are never cached. */
-const VERSION = 'hc-v4';
+const VERSION = 'hc-v5';
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
-const PRECACHE = ['/', '/offline.html', '/manifest.webmanifest', '/manifest-admin.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/brand/logo.png', '/brand/emblem.png'];
+const PRECACHE = ['/staff/login', '/offline.html', '/manifest.webmanifest', '/manifest-admin.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/brand/logo.png', '/brand/emblem.png'];
 
 const realmOf = (path) => (path === '/admin' || path.startsWith('/admin/') ? 'admin' : 'staff');
 
@@ -29,16 +29,20 @@ self.addEventListener('fetch', (event) => {
 
     // Page navigations: network first (fresh HTML / asset hashes), cached shell when offline.
     // Admin and staff keep separate shells because each links its own install manifest.
+    // The public website ("/") and shared bills / slips are separate pages: never stored as an app shell.
     if (req.mode === 'navigate') {
-        const shellKey = realmOf(url.pathname) === 'admin' ? '/admin' : '/';
+        const isSite = url.pathname === '/' || url.pathname.startsWith('/share/');
+        const shellKey = realmOf(url.pathname) === 'admin' ? '/admin' : '/staff/login';
         event.respondWith(
             fetch(req)
                 .then((res) => {
-                    const copy = res.clone();
-                    caches.open(SHELL).then((c) => c.put(shellKey, copy));
+                    if (!isSite && res.ok) {
+                        const copy = res.clone();
+                        caches.open(SHELL).then((c) => c.put(shellKey, copy));
+                    }
                     return res;
                 })
-                .catch(async () => (await caches.match(shellKey)) || (await caches.match('/')) || caches.match('/offline.html')),
+                .catch(async () => (!isSite && ((await caches.match(shellKey)) || (await caches.match('/staff/login')))) || caches.match('/offline.html')),
         );
         return;
     }
