@@ -3,7 +3,7 @@ import { AlarmClock, Clock, Coffee, IndianRupee, Loader2, LogOut, MapPin, Naviga
 import api, { errorMessage } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import useFetch from '../lib/useFetch';
-import { formatDate, formatDuration, formatMinutes, formatMoney, formatShift, formatTime, greeting, mapsLink, shiftLabel } from '../lib/format';
+import { formatDate, formatDuration, formatMinutes, formatMoney, formatShift, formatTime, directionsLink, greeting, shiftLabel } from '../lib/format';
 import { Modal, Spinner, useToast } from '../components/ui';
 import DutyCheckIn from './DutyCheckIn';
 
@@ -296,7 +296,7 @@ export default function StaffHome() {
                             <a href={`tel:${current.client.phone}`} className="btn-secondary">
                                 <Phone size={16} /> Call
                             </a>
-                            <a href={mapsLink(`${current.client.address} ${current.client.city || ''}`)} target="_blank" rel="noreferrer" className="btn-secondary">
+                            <a href={directionsLink(current.client)} target="_blank" rel="noreferrer" className="btn-secondary">
                                 <Navigation size={16} /> Directions
                             </a>
                         </div>

@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import api, { errorMessage } from '../lib/api';
 import { Field, Modal, Toggle, useToast } from '../components/ui';
 import CityPincodeFields from '../components/CityPincodeFields';
+import MapLinkField from '../components/MapLinkField';
 
 const empty = {
     name: '',
@@ -13,6 +14,7 @@ const empty = {
     address: '',
     city: '',
     pincode: '',
+    map_link: '',
     service_type: '',
     medical_notes: '',
     emergency_contact_name: '',
@@ -108,6 +110,7 @@ export default function ClientForm({ open, onClose, client, onSaved }) {
                             <textarea className="input" rows={2} value={form.address} onChange={set('address')} required placeholder="House no, street, landmark" />
                         </Field>
                         <CityPincodeFields form={form} setForm={setForm} errors={errors} required cityClass="sm:col-span-4" pincodeClass="sm:col-span-2" />
+                        <MapLinkField value={form.map_link} onChange={(v) => setForm((f) => ({ ...f, map_link: v }))} error={errors.map_link} className="sm:col-span-6" />
                     </div>
                 </section>
 

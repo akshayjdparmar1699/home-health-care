@@ -10,6 +10,7 @@ import { syncManifest } from './lib/pwa';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import RegisterSuccess from './pages/RegisterSuccess';
+import ClientRegister from './pages/ClientRegister';
 import AdminLayout from './admin/AdminLayout';
 import Dashboard from './admin/Dashboard';
 import StaffList from './admin/StaffList';
@@ -63,6 +64,8 @@ function App() {
             <Route path="/login" element={<Navigate to="/staff/login" replace />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register/success" element={<RegisterSuccess />} />
+            <Route path="/client/register" element={<ClientRegister />} />
+            <Route path="/client" element={<Navigate to="/client/register" replace />} />
 
             <Route
                 path="/admin"

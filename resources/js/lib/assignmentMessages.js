@@ -1,4 +1,4 @@
-import { formatDate, formatMoney, formatShift, mapsLink, shiftLabel } from './format';
+import { directionsLink, formatDate, formatMoney, formatShift, shiftLabel } from './format';
 
 const firstName = (name) => (name || '').split(' ')[0];
 
@@ -24,7 +24,7 @@ export function staffMessage(a, business, appUrl) {
         a.staff_rate ? `*Your pay:* ${formatMoney(a.staff_rate)} per shift` : null,
         a.notes && `*Instructions:* ${a.notes}`,
         '',
-        address && `Directions: ${mapsLink(address)}`,
+        (c.map_link || address) && `Directions: ${directionsLink(c)}`,
         `Start your duty with a selfie in the app: ${appUrl}`,
     ]
         .filter((line) => line !== null && line !== undefined && line !== false)

@@ -67,6 +67,12 @@ export function mapsLink(address) {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
+/** Directions to a client: the exact map pin they shared, else a search for their address. */
+export function directionsLink(client) {
+    if (client?.map_link) return client.map_link;
+    return mapsLink([client?.address, client?.city, client?.pincode].filter(Boolean).join(', '));
+}
+
 export function formatMoney(value, { decimals = false } = {}) {
     const n = Number(value || 0);
     return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: decimals ? 2 : 0 });

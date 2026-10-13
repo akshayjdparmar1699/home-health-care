@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Clock, FilePlus2, HeartHandshake, MapPin, Navigation, Pencil, Phone, Plus, ReceiptText, Share2, ShieldAlert, Stethoscope, Trash2 } from 'lucide-react';
 import api, { errorMessage } from '../lib/api';
 import useFetch from '../lib/useFetch';
-import { formatDate, formatMinutes, formatMoney, formatShift, formatTime, mapsLink, shiftLabel } from '../lib/format';
+import { formatDate, formatMinutes, formatMoney, formatShift, formatTime, directionsLink, shiftLabel } from '../lib/format';
 import { Avatar, ConfirmDialog, EmptyState, Spinner, StatusBadge, useToast } from '../components/ui';
 import ClientForm from './ClientForm';
 import AssignmentForm from './AssignmentForm';
@@ -53,6 +53,7 @@ export default function ClientDetail() {
                         <div className="flex flex-wrap items-center gap-2">
                             <h1 className="text-2xl font-extrabold text-slate-900">{c.name}</h1>
                             <StatusBadge status={c.is_active ? 'active' : 'inactive'} />
+                            {c.source === 'self' && <span className="rounded-full bg-accent-50 px-2 py-0.5 text-[11px] font-semibold text-accent-700">Filled by client</span>}
                         </div>
                         <p className="text-slate-500">
                             {[c.age && `${c.age} years`, c.gender && c.gender[0].toUpperCase() + c.gender.slice(1)].filter(Boolean).join(' · ')}
@@ -69,13 +70,13 @@ export default function ClientDetail() {
                                 <Phone size={16} className="text-slate-400" /> {c.phone}
                                 {c.alt_phone && <span className="text-slate-400">/ {c.alt_phone}</span>}
                             </a>
-                            <a href={mapsLink(fullAddress)} target="_blank" rel="noreferrer" className="flex items-start gap-2 text-slate-600 hover:text-brand-700">
+                            <a href={directionsLink(c)} target="_blank" rel="noreferrer" className="flex items-start gap-2 text-slate-600 hover:text-brand-700">
                                 <MapPin size={16} className="mt-0.5 shrink-0 text-slate-400" /> {fullAddress}
                             </a>
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <a href={mapsLink(fullAddress)} target="_blank" rel="noreferrer" className="btn-secondary">
+                        <a href={directionsLink(c)} target="_blank" rel="noreferrer" className="btn-secondary">
                             <Navigation size={16} /> Map
                         </a>
                         <button className="btn-secondary" onClick={() => setEditOpen(true)}>

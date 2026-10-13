@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Client;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
 {
@@ -71,25 +70,12 @@ class ClientController extends Controller
 
     private function validated(Request $request): array
     {
-        if ($request->filled('city')) {
-            $request->merge(['city' => ucwords(strtolower(trim($request->city)))]);
-        }
+        $request->replace(Client::normaliseInput($request->all()));
 
         return $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20'],
-            'alt_phone' => ['nullable', 'string', 'max:20'],
-            'gender' => ['nullable', Rule::in(['male', 'female', 'other'])],
-            'age' => ['nullable', 'integer', 'min:0', 'max:130'],
-            'address' => ['required', 'string'],
-            'city' => ['required', 'string', 'max:80'],
-            'pincode' => ['nullable', 'digits:6'],
-            'service_type' => ['nullable', 'string', 'max:80'],
+            ...Client::detailRules(),
             'hourly_charge' => ['nullable', 'numeric', 'min:0'],
-            'medical_notes' => ['nullable', 'string'],
-            'emergency_contact_name' => ['nullable', 'string', 'max:255'],
-            'emergency_contact_phone' => ['nullable', 'string', 'max:20'],
             'is_active' => ['boolean'],
-        ]);
+        ], ['map_link.regex' => 'Please paste a Google Maps link (open the location in Google Maps, tap Share, then Copy link).']);
     }
 }

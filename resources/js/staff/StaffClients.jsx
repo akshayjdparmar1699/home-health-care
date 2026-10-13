@@ -1,6 +1,6 @@
 import { Clock, HeartHandshake, MapPin, Moon, Navigation, Phone, ShieldAlert, Stethoscope, Sun, Users } from 'lucide-react';
 import useFetch from '../lib/useFetch';
-import { formatShift, mapsLink, shiftLabel } from '../lib/format';
+import { directionsLink, formatShift, shiftLabel } from '../lib/format';
 import { Avatar, EmptyState, Spinner } from '../components/ui';
 import { StaffPageHeader } from './StaffLayout';
 
@@ -72,7 +72,7 @@ export default function StaffClients() {
                                         <Phone size={17} /> Call
                                     </a>
                                     <a
-                                        href={mapsLink(address)}
+                                        href={directionsLink(c)}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="flex items-center justify-center gap-2 border-l border-slate-100 py-3.5 text-sm font-semibold text-brand-700 active:bg-slate-50"

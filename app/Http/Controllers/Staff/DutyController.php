@@ -23,7 +23,7 @@ class DutyController extends Controller
         $today = now()->toDateString();
 
         $current = $user->attendances()
-            ->with(['client:id,name,phone,address,city', 'breaks'])
+            ->with(['client:id,name,phone,address,city,map_link', 'breaks'])
             ->where('status', '!=', 'completed')
             ->latest('clock_in')
             ->first();
@@ -227,7 +227,7 @@ class DutyController extends Controller
     /** Strip client pricing and unrelated relations before returning a duty to staff. */
     private function forStaff(Attendance $attendance): Attendance
     {
-        $attendance->unsetRelations()->load(['client:id,name,phone,address,city', 'breaks']);
+        $attendance->unsetRelations()->load(['client:id,name,phone,address,city,map_link', 'breaks']);
 
         return $attendance->makeHidden(Attendance::CLIENT_FINANCE);
     }

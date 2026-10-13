@@ -127,6 +127,7 @@ function ClientTable({ clients }) {
                                 </td>
                                 <td>
                                     <StatusBadge status={c.is_active ? 'active' : 'inactive'} />
+                                    {c.source === 'self' && <span className="ml-1.5 rounded-full bg-accent-50 px-2 py-0.5 text-[11px] font-semibold text-accent-700">Filled by client</span>}
                                 </td>
                                 <td className="text-right">
                                     <ChevronRight size={18} className="inline text-slate-300" />
