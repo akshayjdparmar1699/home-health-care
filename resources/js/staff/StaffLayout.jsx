@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import InstallGuide from '../components/InstallGuide';
+import NotificationGate from '../components/NotificationGate';
 import { refreshPush } from '../lib/push';
 import { History, Home, UserRound, Users, Wallet } from 'lucide-react';
 
@@ -28,6 +29,7 @@ export default function StaffLayout() {
             </main>
 
             <InstallGuide auto />
+            <NotificationGate />
 
             <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/70 bg-white/95 backdrop-blur">
                 <div className="mx-auto grid max-w-lg grid-cols-5">

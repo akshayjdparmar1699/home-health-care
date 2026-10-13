@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, BellRing, CheckCheck, IndianRupee, X } from 'lucide-react';
 import api from '../lib/api';
-import { enablePush, pushSupport } from '../lib/push';
 import { formatMinutes, formatMoney, shiftLabel, timeAgo } from '../lib/format';
 
 const POLL_MS = 15000;
@@ -51,7 +50,6 @@ export default function NotificationBell({ className = '' }) {
     const [data, setData] = useState({ unread: 0, items: [] });
     const [open, setOpen] = useState(false);
     const [popups, setPopups] = useState([]);
-    const [permission, setPermission] = useState(pushSupport);
     const seen = useRef(null);
 
     useEffect(() => {
@@ -105,14 +103,6 @@ export default function NotificationBell({ className = '' }) {
         setData((s) => ({ unread: 0, items: s.items.map((i) => ({ ...i, read_at: i.read_at || new Date().toISOString() })) }));
     };
 
-    const enableAlerts = async () => {
-        try {
-            setPermission(await enablePush());
-        } catch {
-            setPermission(pushSupport());
-        }
-    };
-
     return (
         <>
             <div className={`relative ${className}`}>
@@ -141,17 +131,6 @@ export default function NotificationBell({ className = '' }) {
                                     </button>
                                 )}
                             </div>
-                            {permission === 'default' && (
-                                <button onClick={enableAlerts} className="flex w-full items-center gap-2 bg-accent-50 px-4 py-2.5 text-left text-xs font-semibold text-accent-700">
-                                    <BellRing size={14} /> Turn on phone / desktop alerts (even when the app is closed)
-                                </button>
-                            )}
-                            {permission === 'insecure' && (
-                                <p className="bg-amber-50 px-4 py-2.5 text-xs text-amber-800">Alerts while the app is closed work only on the secure (https) website.</p>
-                            )}
-                            {permission === 'denied' && (
-                                <p className="bg-amber-50 px-4 py-2.5 text-xs text-amber-800">Notifications are blocked. Allow them for this site in browser settings.</p>
-                            )}
                             <div className="max-h-[60vh] overflow-y-auto">
                                 {data.items.length === 0 ? (
                                     <p className="px-4 py-10 text-center text-sm text-slate-400">No notifications yet. You will be notified when staff end a duty.</p>

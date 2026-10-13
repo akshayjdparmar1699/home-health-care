@@ -441,16 +441,16 @@ VPS ki jagah shared hosting lo to:
   ln -s yourshome/public public_html
   ```
 - **Build:** Premium me Node nahi hai, isliye apne computer pe `npm run build` chala ke `public/build` folder upload karo (File Manager ya `scp`).
-- **Cron (duty reminders):** hPanel → Advanced → **Cron Jobs** → "Custom" → har minute (`* * * * *`), command me **sirf ye** (bina `cd`, `&&`, `>>` ke, kyunki Hostinger cron shell nahi chalata):
+- **Cron (duty reminders):** Hostinger pe `proc_open` band hai, isliye Laravel ka `schedule:run` **nahi chalega**. Cron me seedha reminder command lagao. hPanel → Advanced → **Cron Jobs** → "Custom" → har minute (`* * * * *`), command me **sirf ye** (bina `cd`, `&&`, `>>` ke, kyunki Hostinger cron shell nahi chalata):
   ```
-  /usr/bin/php /home/uXXXXXXX/domains/yourdomain.com/yourshome/artisan schedule:run
+  /usr/bin/php /home/uXXXXXXX/domains/yourdomain.com/yourshome/artisan duty:remind
   ```
   (`uXXXXXXX` apna hPanel username. Path SSH me `pwd` se mil jayega.)
 - **Daily DB backup** (Premium me sirf weekly backup hai): Cron Jobs me roz raat 2 baje (`0 2 * * *`):
   ```
   /usr/bin/php /home/uXXXXXXX/domains/yourdomain.com/yourshome/artisan db:backup
   ```
-  Ya hPanel → **Backups** se kabhi bhi manual backup download karo.
+  Ye pure PHP se backup banata hai (mysqldump ki zarurat nahi), file `storage/app/private/backups/` me 14 din tak rehti hai. Staff ki photos (`storage/app/private`) Hostinger ke weekly backup me aati hain; hPanel → **Backups** se kabhi bhi manual backup download karo.
 - **SSL:** hPanel → Security → **SSL** → Install (free). Phir "Force HTTPS" on.
 
 ---
@@ -465,7 +465,7 @@ VPS ki jagah shared hosting lo to:
 - [ ] `storage` aur `bootstrap/cache` ki permission `www-data`
 - [ ] Nginx config + `nginx -t` OK
 - [ ] SSL (https) laga
-- [ ] Scheduler cron (`schedule:run` har minute)
+- [ ] Reminder cron har minute (VPS: `schedule:run`, Hostinger: `duty:remind`)
 - [ ] Backup cron
 - [ ] Admin password badla, Business details bhare
-- [ ] Admin + staff ne notifications "Turn on" kiye
+- [ ] Admin + staff ne notifications "Allow" kiye (bina iske app nahi khulta)

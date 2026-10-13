@@ -1,5 +1,4 @@
 import { CheckCircle2, Clock, Hourglass, IndianRupee, MapPin, ShieldCheck, Wallet } from 'lucide-react';
-import PushPrompt from '../components/PushPrompt';
 import PayslipShareButton from '../components/PayslipShareButton';
 import useFetch from '../lib/useFetch';
 import { formatDate, formatMinutes, formatMoney, shiftLabel } from '../lib/format';
@@ -37,8 +36,6 @@ export default function StaffEarnings() {
                         <p className="text-[11px] font-semibold text-slate-400">TOTAL RECEIVED</p>
                     </div>
                 </div>
-
-                <PushPrompt title="Get notified about payments" text="We will tell you as soon as the admin approves your duty payment." />
 
                 {awaiting.length > 0 && (
                     <div>
