@@ -10,6 +10,7 @@ import AssignmentForm from './AssignmentForm';
 import CloseAssignmentModal from './CloseAssignmentModal';
 import AssignmentShare from '../components/AssignmentShare';
 import CheckInPhoto from './CheckInPhoto';
+import ClientVisits from './ClientVisits';
 
 export default function ClientDetail() {
     const { id } = useParams();
@@ -124,7 +125,11 @@ export default function ClientDetail() {
                     <div className="p-3">
                         <p className="text-[11px] font-semibold text-slate-400">NOT BILLED YET</p>
                         <p className="text-lg font-extrabold text-amber-600">{formatMoney(c.finance.unbilled)}</p>
-                        <p className="text-[11px] text-slate-400">{formatMinutes(c.finance.unbilled_minutes)}</p>
+                        <p className="text-[11px] text-slate-400">
+                            {[c.finance.unbilled_minutes > 0 && formatMinutes(c.finance.unbilled_minutes), c.finance.unbilled_visits > 0 && `visits ${formatMoney(c.finance.unbilled_visits)}`]
+                                .filter(Boolean)
+                                .join(' + ') || formatMinutes(0)}
+                        </p>
                     </div>
                     <div className="p-3">
                         <p className="text-[11px] font-semibold text-slate-400">BILLED, UNPAID</p>
@@ -153,6 +158,8 @@ export default function ClientDetail() {
                     </ul>
                 )}
             </div>
+
+            <ClientVisits client={c} onChanged={() => reload(true)} />
 
             <div className="grid gap-5 lg:grid-cols-5">
                 <div className="card lg:col-span-2">

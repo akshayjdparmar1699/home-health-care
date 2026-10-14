@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Client;
+use App\Models\ClientVisit;
 use App\Models\Invoice;
 use App\Models\Setting;
 use App\Support\ShareLinks;
@@ -45,7 +46,24 @@ class InvoiceController extends Controller
                 'from' => $r->from_date,
                 'to' => $r->to_date,
             ])
-            ->sortByDesc('amount')->values();
+            ->keyBy('client_id');
+
+        // Unbilled visit charges are part of what the client owes.
+        $visits = ClientVisit::query()
+            ->select('client_id', DB::raw('COUNT(*) as visits'), DB::raw('SUM(amount) as amount'), DB::raw('MIN(visit_date) as from_date'), DB::raw('MAX(visit_date) as to_date'))
+            ->whereNull('invoice_id')
+            ->groupBy('client_id')
+            ->with('client:id,name,city')
+            ->get();
+        foreach ($visits as $v) {
+            $row = $unbilled->get($v->client_id, ['client_id' => $v->client_id, 'client' => $v->client, 'sessions' => 0, 'minutes' => 0, 'amount' => 0, 'from' => $v->from_date, 'to' => $v->to_date]);
+            $row['visits'] = (int) $v->visits;
+            $row['amount'] = round($row['amount'] + (float) $v->amount, 2);
+            $row['from'] = min($row['from'], $v->from_date);
+            $row['to'] = max($row['to'], $v->to_date);
+            $unbilled->put($v->client_id, $row);
+        }
+        $unbilled = $unbilled->sortByDesc('amount')->values();
 
         return response()->json([
             'invoices' => $invoices,
@@ -64,13 +82,15 @@ class InvoiceController extends Controller
     {
         $data = $this->periodRules($request);
         $rows = $this->unbilledQuery($data)->with('staff:id,name,designation')->get();
+        $visits = $this->unbilledVisits($data)->get();
 
         return response()->json([
             'client' => Client::find($data['client_id'], ['id', 'name', 'city']),
             'sessions' => $rows->count(),
+            'visits' => $visits->count(),
             'minutes' => (int) $rows->sum('worked_minutes'),
-            'items' => $this->buildItems($rows),
-            'subtotal' => round($rows->sum('client_amount'), 2),
+            'items' => [...$this->buildItems($rows), ...$this->visitItems($visits)],
+            'subtotal' => round($rows->sum('client_amount') + $visits->sum('amount'), 2),
             'missing_rate' => $rows->where('client_amount', '<=', 0)->count(),
         ]);
     }
@@ -89,14 +109,15 @@ class InvoiceController extends Controller
 
         $invoice = DB::transaction(function () use ($data) {
             $rows = $this->unbilledQuery($data)->with('staff:id,name,designation')->lockForUpdate()->get();
+            $visits = $this->unbilledVisits($data)->lockForUpdate()->get();
             $extras = collect($data['extra_items'] ?? []);
 
-            if ($rows->isEmpty() && $extras->isEmpty()) {
-                throw ValidationException::withMessages(['period' => 'No unbilled duties for this client in the selected period.']);
+            if ($rows->isEmpty() && $visits->isEmpty() && $extras->isEmpty()) {
+                throw ValidationException::withMessages(['period' => 'No unbilled duties or visits for this client in the selected period.']);
             }
 
-            $items = $this->buildItems($rows);
-            $subtotal = round($rows->sum('client_amount') + $extras->sum('amount'), 2);
+            $items = [...$this->buildItems($rows), ...$this->visitItems($visits)];
+            $subtotal = round($rows->sum('client_amount') + $visits->sum('amount') + $extras->sum('amount'), 2);
             $discount = round((float) ($data['discount'] ?? 0), 2);
 
             $invoice = Invoice::create([
@@ -123,6 +144,7 @@ class InvoiceController extends Controller
             }
 
             Attendance::whereIn('id', $rows->pluck('id'))->update(['invoice_id' => $invoice->id]);
+            ClientVisit::whereIn('id', $visits->pluck('id'))->update(['invoice_id' => $invoice->id]);
 
             return $invoice;
         });
@@ -170,11 +192,12 @@ class InvoiceController extends Controller
         return response()->json($invoice);
     }
 
-    /** Deleting a bill releases its duties so they can be billed again. */
+    /** Deleting a bill releases its duties and visits so they can be billed again. */
     public function destroy(Invoice $invoice)
     {
         DB::transaction(function () use ($invoice) {
             $invoice->attendances()->update(['invoice_id' => null]);
+            $invoice->visits()->update(['invoice_id' => null]);
             $invoice->delete();
         });
 
@@ -204,6 +227,29 @@ class InvoiceController extends Controller
                 ];
             })
             ->values()->all();
+    }
+
+    /**
+     * One line per visit charge, in date order.
+     *
+     * @return array<int, array{description: string, quantity: int, unit: string, rate: float, amount: float}>
+     */
+    private function visitItems($visits): array
+    {
+        return $visits->sortBy('visit_date')->map(fn (ClientVisit $v) => [
+            'description' => 'Visit on '.$v->visit_date->format('d M Y').' - '.$v->description,
+            'quantity' => 1,
+            'unit' => 'visit',
+            'rate' => $v->amount,
+            'amount' => round($v->amount, 2),
+        ])->values()->all();
+    }
+
+    private function unbilledVisits(array $data)
+    {
+        return ClientVisit::where('client_id', $data['client_id'])
+            ->whereNull('invoice_id')
+            ->whereBetween('visit_date', [$data['from'], $data['to']]);
     }
 
     private function periodRules(Request $request): array

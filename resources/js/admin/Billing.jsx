@@ -46,7 +46,7 @@ export default function Billing() {
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate font-semibold text-slate-800">{u.client?.name}</p>
                                             <p className="text-xs text-slate-500">
-                                                {u.client?.city || 'No city'} · {u.sessions} visits · {formatMinutes(u.minutes)} · {formatDate(u.from, { year: undefined })} to{' '}
+                                                {u.client?.city || 'No city'} · {u.sessions} shifts{u.visits ? ` + ${u.visits} visit${u.visits > 1 ? 's' : ''}` : ''} · {formatMinutes(u.minutes)} · {formatDate(u.from, { year: undefined })} to{' '}
                                                 {formatDate(u.to, { year: undefined })}
                                             </p>
                                         </div>

@@ -38,6 +38,11 @@ class Invoice extends Model
         return $this->hasMany(InvoiceItem::class)->orderBy('sort');
     }
 
+    public function visits(): HasMany
+    {
+        return $this->hasMany(ClientVisit::class);
+    }
+
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);

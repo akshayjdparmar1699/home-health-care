@@ -45,7 +45,7 @@ export default function InvoiceCreate() {
     const subtotal = (preview?.subtotal || 0) + extrasTotal;
     const discount = Number(form.discount || 0);
     const total = Math.max(0, subtotal - discount);
-    const canSave = form.client_id && (preview?.sessions > 0 || extras.some((x) => x.description && x.amount));
+    const canSave = form.client_id && (preview?.sessions > 0 || preview?.visits > 0 || extras.some((x) => x.description && x.amount));
 
     const submit = async () => {
         setSaving(true);
@@ -121,7 +121,7 @@ export default function InvoiceCreate() {
                             <h2 className="font-bold text-slate-900">Bill items</h2>
                             {preview && (
                                 <p className="text-xs text-slate-400">
-                                    {preview.sessions} shifts · {formatMinutes(preview.minutes)} of care
+                                    {preview.sessions} shifts{preview.visits ? ` + ${preview.visits} visit${preview.visits > 1 ? 's' : ''}` : ''} · {formatMinutes(preview.minutes)} of care
                                 </p>
                             )}
                         </div>
@@ -144,8 +144,8 @@ export default function InvoiceCreate() {
                                 <thead>
                                     <tr>
                                         <th>Description</th>
-                                        <th className="text-right">Shifts</th>
-                                        <th className="text-right">Rate / shift</th>
+                                        <th className="text-right">Qty</th>
+                                        <th className="text-right">Rate</th>
                                         <th className="text-right">Amount</th>
                                         <th></th>
                                     </tr>
@@ -160,7 +160,7 @@ export default function InvoiceCreate() {
                                     ) : preview?.items.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="text-center text-sm text-amber-700">
-                                                No unbilled duties in this period
+                                                No unbilled duties or visits in this period
                                             </td>
                                         </tr>
                                     ) : (

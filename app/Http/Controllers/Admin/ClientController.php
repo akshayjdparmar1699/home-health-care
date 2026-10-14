@@ -39,13 +39,16 @@ class ClientController extends Controller
         $client->month_minutes = (int) $client->attendances()
             ->where('duty_date', '>=', now()->startOfMonth()->toDateString())
             ->where('status', 'completed')->sum('worked_minutes');
+        $unbilledVisits = (float) $client->visits()->whereNull('invoice_id')->sum('amount');
         $client->finance = [
-            'unbilled' => round((float) $client->attendances()->where('status', 'completed')->whereNull('invoice_id')->whereNotNull('approved_at')->sum('client_amount'), 2),
+            'unbilled' => round((float) $client->attendances()->where('status', 'completed')->whereNull('invoice_id')->whereNotNull('approved_at')->sum('client_amount') + $unbilledVisits, 2),
+            'unbilled_visits' => round($unbilledVisits, 2),
             'unbilled_minutes' => (int) $client->attendances()->where('status', 'completed')->whereNull('invoice_id')->whereNotNull('approved_at')->sum('worked_minutes'),
             'billed_unpaid' => round((float) $client->invoices()->where('status', 'unpaid')->sum('total'), 2),
             'paid_total' => round((float) $client->invoices()->where('status', 'paid')->sum('total'), 2),
         ];
         $client->invoices_list = $client->invoices()->latest('issue_date')->limit(12)->get();
+        $client->visit_charges = $client->visits()->with('invoice:id,invoice_no,status')->latest('visit_date')->latest('id')->limit(50)->get();
 
         return response()->json($client);
     }

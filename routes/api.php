@@ -30,6 +30,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/staff/{staff}/documents/{type}', [Admin\StaffController::class, 'document'])->whereIn('type', ['selfie', 'aadhaar_front', 'aadhaar_back']);
         Route::apiResource('staff', Admin\StaffController::class)->parameters(['staff' => 'staff']);
         Route::apiResource('clients', Admin\ClientController::class);
+        Route::get('/clients/{client}/visits', [Admin\ClientVisitController::class, 'index']);
+        Route::post('/clients/{client}/visits', [Admin\ClientVisitController::class, 'store']);
+        Route::put('/visits/{visit}', [Admin\ClientVisitController::class, 'update']);
+        Route::delete('/visits/{visit}', [Admin\ClientVisitController::class, 'destroy']);
         Route::apiResource('assignments', Admin\AssignmentController::class)->except('show');
         Route::post('/assignments/{assignment}/close', [Admin\AssignmentController::class, 'close']);
         Route::post('/assignments/{assignment}/reopen', [Admin\AssignmentController::class, 'reopen']);
