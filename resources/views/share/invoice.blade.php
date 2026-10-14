@@ -37,7 +37,7 @@
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Bill to</p>
             <p class="mt-1 font-bold text-slate-900">{{ $client?->name }}</p>
             <p class="text-sm text-slate-600">{{ collect([$client?->address, $client?->city, $client?->pincode])->filter()->join(', ') }}</p>
-            <p class="text-sm text-slate-600">{{ $client?->phone }}</p>
+            <p class="text-sm text-slate-600">{{ collect([$client?->relative_name, $client?->relative_phone])->filter()->join(' · ') }}</p>
         </div>
         <div class="sm:text-right">
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Service period</p>

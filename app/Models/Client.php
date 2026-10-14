@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 class Client extends Model
 {
     protected $fillable = [
-        'name', 'phone', 'alt_phone', 'gender', 'age', 'address', 'city', 'pincode', 'map_link',
+        'name', 'relative_name', 'relative_phone', 'gender', 'age', 'address', 'city', 'pincode', 'map_link',
         'service_type', 'hourly_charge', 'medical_notes', 'emergency_contact_name', 'emergency_contact_phone', 'is_active', 'source',
     ];
 
@@ -25,8 +25,8 @@ class Client extends Model
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20'],
-            'alt_phone' => ['nullable', 'string', 'max:20'],
+            'relative_name' => ['required', 'string', 'max:255'],
+            'relative_phone' => ['required', 'string', 'max:20'],
             'gender' => ['nullable', Rule::in(['male', 'female', 'other'])],
             'age' => ['nullable', 'integer', 'min:0', 'max:130'],
             'address' => ['required', 'string', 'max:1000'],

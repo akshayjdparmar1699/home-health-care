@@ -21,7 +21,8 @@ class ClientVisitFactory extends Factory
         return [
             'client_id' => fn () => Client::create([
                 'name' => fake()->name(),
-                'phone' => fake()->numerify('9#########'),
+                'relative_name' => fake()->name(),
+                'relative_phone' => fake()->numerify('9#########'),
                 'address' => fake()->streetAddress(),
                 'city' => 'Ahmedabad',
             ])->id,

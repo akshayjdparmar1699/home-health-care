@@ -16,7 +16,7 @@ class AssignmentController extends Controller
     private const WITH = [
         'staff:id,name,phone,designation',
         'staff.profile:id,user_id,whatsapp',
-        'client:id,name,phone,age,address,city,pincode,map_link',
+        'client:id,name,relative_name,relative_phone,age,address,city,pincode,map_link',
     ];
 
     public function index(Request $request)

@@ -18,7 +18,7 @@ export function staffMessage(a, business, appUrl) {
         '',
         `*Client:* ${c.name}${c.age ? ` (${c.age} yrs)` : ''}`,
         address && `*Address:* ${address}`,
-        c.phone && `*Client mobile:* ${c.phone}`,
+        c.relative_phone && `*Relative:* ${[c.relative_name, c.relative_phone].filter(Boolean).join(', ')}`,
         a.shift_hours && `*Shift:* ${shiftLine(a)}`,
         `*Starting:* ${formatDate(a.start_date)}`,
         a.staff_rate ? `*Your pay:* ${formatMoney(a.staff_rate)} per shift` : null,

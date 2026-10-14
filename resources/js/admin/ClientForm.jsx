@@ -7,8 +7,8 @@ import MapLinkField from '../components/MapLinkField';
 
 const empty = {
     name: '',
-    phone: '',
-    alt_phone: '',
+    relative_name: '',
+    relative_phone: '',
     gender: '',
     age: '',
     address: '',
@@ -94,11 +94,11 @@ export default function ClientForm({ open, onClose, client, onSaved }) {
                                 <option value="other">Other</option>
                             </select>
                         </Field>
-                        <Field label="Phone *" error={errors.phone} className="sm:col-span-3">
-                            <input className="input" type="tel" value={form.phone} onChange={set('phone')} required />
+                        <Field label="Relative name *" error={errors.relative_name} className="sm:col-span-3">
+                            <input className="input" value={form.relative_name} onChange={set('relative_name')} required placeholder="e.g. Rakesh Shah (son)" />
                         </Field>
-                        <Field label="Alternate phone" error={errors.alt_phone} className="sm:col-span-3">
-                            <input className="input" type="tel" value={form.alt_phone} onChange={set('alt_phone')} />
+                        <Field label="Relative number *" error={errors.relative_phone} className="sm:col-span-3">
+                            <input className="input" type="tel" value={form.relative_phone} onChange={set('relative_phone')} required />
                         </Field>
                     </div>
                 </section>

@@ -11,8 +11,8 @@ const empty = {
     name: '',
     age: '',
     gender: '',
-    phone: '',
-    alt_phone: '',
+    relative_name: '',
+    relative_phone: '',
     address: '',
     city: '',
     pincode: '',
@@ -27,8 +27,8 @@ const empty = {
 function validate(form) {
     const e = {};
     if (!form.name.trim()) e.name = 'Please enter the patient name.';
-    if (!/^\d{10}$/.test(form.phone)) e.phone = 'Enter a valid 10 digit mobile number.';
-    if (form.alt_phone && !/^\d{10}$/.test(form.alt_phone)) e.alt_phone = 'Enter a valid 10 digit number.';
+    if (!form.relative_name.trim()) e.relative_name = 'Please enter the relative name.';
+    if (!/^\d{10}$/.test(form.relative_phone)) e.relative_phone = 'Enter a valid 10 digit mobile number.';
     if (!form.address.trim()) e.address = 'Please enter the home address.';
     if (!form.city) e.city = 'Please select the city.';
     if (form.pincode && !/^\d{6}$/.test(form.pincode)) e.pincode = 'Pincode must be 6 digits.';
@@ -144,11 +144,11 @@ export default function ClientRegister() {
                             <option value="other">Other</option>
                         </select>
                     </Field>
-                    <Field label="Mobile number *" error={errors.phone} className="sm:col-span-2">
-                        <input className="input" type="tel" inputMode="numeric" value={form.phone} onChange={digits('phone', 10)} data-error={!!errors.phone} autoComplete="tel" />
+                    <Field label="Relative name *" error={errors.relative_name} className="sm:col-span-2">
+                        <input className="input" value={form.relative_name} onChange={set('relative_name')} data-error={!!errors.relative_name} autoComplete="name" placeholder="Your name" />
                     </Field>
-                    <Field label="Alternate mobile" error={errors.alt_phone} className="sm:col-span-2">
-                        <input className="input" type="tel" inputMode="numeric" value={form.alt_phone} onChange={digits('alt_phone', 10)} data-error={!!errors.alt_phone} />
+                    <Field label="Relative number *" error={errors.relative_phone} className="sm:col-span-2">
+                        <input className="input" type="tel" inputMode="numeric" value={form.relative_phone} onChange={digits('relative_phone', 10)} data-error={!!errors.relative_phone} autoComplete="tel" />
                     </Field>
                 </Section>
 

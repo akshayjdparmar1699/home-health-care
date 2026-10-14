@@ -158,7 +158,7 @@ FILESYSTEM_DISK=local
 ```
 
 **Dhyan rahe:**
-- `APP_ENV=production` zaroori hai: isse demo staff / demo clients **nahi** banenge.
+- `APP_ENV=production` zaroori hai.
 - `APP_DEBUG=false` zaroori hai: warna error me passwords dikh sakte hain.
 - `APP_URL` me **https** aur apna domain. Phone notifications isi se chalte hain.
 - `.env` kabhi GitHub pe mat daalna.
@@ -176,7 +176,7 @@ npm run build
 
 php artisan key:generate            # SIRF pehli baar
 php artisan migrate --force         # saari tables banengi
-php artisan db:seed --force         # sirf admin account banega (production me demo data nahi)
+php artisan db:seed --force         # sirf admin account banega (demo data: db:seed --class=DemoSeeder, sirf local pe)
 php artisan optimize                # config, routes, views cache
 
 # Laravel ko storage me likhne ki permission
@@ -185,8 +185,8 @@ chmod -R 775 storage bootstrap/cache
 ```
 
 **Admin login jo banega:**
-- Email: `admin@homecare.com` (ya mobile `9999999999`)
-- Password: `admin123`
+- Mobile: `9227306545` (ya email `baradnilesh2000@gmail.com`)
+- Password: wahi jo `database/seeders/DatabaseSeeder.php` me hai
 
 **Live hote hi ye password badalna hai** (step 12).
 
@@ -313,7 +313,7 @@ cd /var/www/yourshome && php artisan schedule:list
 
 ## 12. Live hone ke baad pehla kaam (zaroori)
 
-1. **https://yourdomain.com/admin/login** kholo, `admin@homecare.com` / `admin123` se login karo.
+1. **https://yourdomain.com/admin/login** kholo, mobile `9227306545` aur seeder wale password se login karo.
 2. **Settings → Change password**: naya strong password set karo.
 3. **Settings → Business details**: naam, address, phone, GSTIN, Bank/UPI details (ye bill pe chhapte hain).
 4. 🔔 ghanti → **"Turn on phone / desktop alerts"** (duty end aur payment approval ke notifications).
@@ -469,3 +469,16 @@ VPS ki jagah shared hosting lo to:
 - [ ] Backup cron
 - [ ] Admin password badla, Business details bhare
 - [ ] Admin + staff ne notifications "Allow" kiye (bina iske app nahi khulta)
+
+---
+
+## Saara data saaf karke naya shuru karna
+
+Saare staff, clients, duties, bills, leads, notifications, logins aur uploaded photos delete karke sirf admin account wapas banata hai. Pehle apne aap database backup leta hai (`storage/app/private/backups/`). Settings (business details, notification keys) rehti hain.
+
+```bash
+php artisan app:reset-data
+```
+
+Ye "yes" poochhega. Ye kaam **wapas nahi hota**, sirf backup se hi data wapas aa sakta hai.
+

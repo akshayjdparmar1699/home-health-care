@@ -68,8 +68,8 @@ export default function StaffClients() {
                                     )}
                                 </div>
                                 <div className="grid grid-cols-2 border-t border-slate-100">
-                                    <a href={`tel:${c.phone}`} className="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-brand-700 active:bg-slate-50">
-                                        <Phone size={17} /> Call
+                                    <a href={`tel:${c.relative_phone}`} className="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-brand-700 active:bg-slate-50">
+                                        <Phone size={17} /> Call relative
                                     </a>
                                     <a
                                         href={directionsLink(c)}

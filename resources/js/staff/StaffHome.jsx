@@ -293,7 +293,7 @@ export default function StaffHome() {
                             <MapPin size={15} className="mt-0.5 shrink-0" /> {current.client.address}
                         </p>
                         <div className="mt-3 grid grid-cols-2 gap-2">
-                            <a href={`tel:${current.client.phone}`} className="btn-secondary">
+                            <a href={`tel:${current.client.relative_phone}`} className="btn-secondary">
                                 <Phone size={16} /> Call
                             </a>
                             <a href={directionsLink(current.client)} target="_blank" rel="noreferrer" className="btn-secondary">

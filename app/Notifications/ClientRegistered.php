@@ -32,7 +32,7 @@ class ClientRegistered extends Notification
      */
     public function toWebPush(object $notifiable): array
     {
-        $details = array_filter([$this->client->service_type, $this->client->city, $this->client->phone]);
+        $details = array_filter([$this->client->service_type, $this->client->city, $this->client->relative_phone]);
 
         return [
             'title' => "New client: {$this->client->name}",

@@ -18,7 +18,7 @@ class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
-        $invoices = Invoice::with('client:id,name,city,phone')
+        $invoices = Invoice::with('client:id,name,city,relative_name,relative_phone')
             ->when($request->client_id, fn ($q, $id) => $q->where('client_id', $id))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->city, fn ($q, $c) => $q->whereHas('client', fn ($q) => $q->where('city', $c)))

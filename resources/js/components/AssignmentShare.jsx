@@ -105,9 +105,9 @@ export default function AssignmentShare({ assignment: a, open, onClose, title = 
                         icon={UserRound}
                         who="Tell the client"
                         name={a.client?.name}
-                        phone={a.client?.phone}
+                        phone={a.client?.relative_phone}
                         message={toClient}
-                        onMore={() => setMore({ text: toClient, phone: a.client?.phone, name: a.client?.name })}
+                        onMore={() => setMore({ text: toClient, phone: a.client?.relative_phone, name: a.client?.relative_name || a.client?.name })}
                     />
                     <p className="text-center text-[11px] text-slate-400">The staff message has their pay. The client message has no prices and no staff phone number.</p>
                 </div>

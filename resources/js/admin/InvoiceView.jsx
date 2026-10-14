@@ -119,7 +119,7 @@ export default function InvoiceView() {
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Bill to</p>
                         <p className="mt-1 font-bold text-slate-900">{c.name}</p>
                         <p className="text-sm text-slate-600">{[c.address, c.city, c.pincode].filter(Boolean).join(', ')}</p>
-                        <p className="text-sm text-slate-600">{c.phone}</p>
+                        <p className="text-sm text-slate-600">{[c.relative_name, c.relative_phone].filter(Boolean).join(' · ')}</p>
                     </div>
                     <div className="sm:text-right">
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Service period</p>
@@ -254,7 +254,7 @@ export default function InvoiceView() {
                 subtitle={`${inv.client?.name || ''} · ${formatMoney(inv.total)}`}
                 text={`Hello ${inv.client?.name || ''}, your bill ${inv.invoice_no} from ${biz.business_name} for ${formatDate(inv.period_from, { year: undefined })} - ${formatDate(inv.period_to)} is ${formatMoney(inv.total)}${inv.status === 'paid' ? ' (paid, thank you!)' : ''}. View & download:`}
                 url={shareUrl}
-                phone={inv.client?.phone}
+                phone={inv.client?.relative_phone}
                 phoneLabel={inv.client?.name ? `to ${inv.client.name.split(' ')[0]}` : undefined}
             />
 

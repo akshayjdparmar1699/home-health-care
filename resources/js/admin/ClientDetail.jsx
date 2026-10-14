@@ -67,9 +67,9 @@ export default function ClientDetail() {
                             )}
                         </div>
                         <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                            <a href={`tel:${c.phone}`} className="flex items-center gap-2 text-slate-600 hover:text-brand-700">
-                                <Phone size={16} className="text-slate-400" /> {c.phone}
-                                {c.alt_phone && <span className="text-slate-400">/ {c.alt_phone}</span>}
+                            <a href={`tel:${c.relative_phone}`} className="flex items-center gap-2 text-slate-600 hover:text-brand-700">
+                                <Phone size={16} className="text-slate-400" /> {c.relative_phone}
+                                {c.relative_name && <span className="text-slate-400">({c.relative_name})</span>}
                             </a>
                             <a href={directionsLink(c)} target="_blank" rel="noreferrer" className="flex items-start gap-2 text-slate-600 hover:text-brand-700">
                                 <MapPin size={16} className="mt-0.5 shrink-0 text-slate-400" /> {fullAddress}

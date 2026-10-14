@@ -14,7 +14,8 @@ class ClientController extends Controller
         $clients = Client::query()
             ->when($request->search, function ($q, $s) {
                 $q->where(fn ($q) => $q->where('name', 'like', "%$s%")
-                    ->orWhere('phone', 'like', "%$s%")
+                    ->orWhere('relative_name', 'like', "%$s%")
+                    ->orWhere('relative_phone', 'like', "%$s%")
                     ->orWhere('city', 'like', "%$s%")
                     ->orWhere('address', 'like', "%$s%"));
             })

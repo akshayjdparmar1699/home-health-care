@@ -40,7 +40,8 @@ function ClientCards({ clients }) {
                             </span>
                         </p>
                         <p className="flex items-center gap-2">
-                            <Phone size={15} /> {c.phone}
+                            <Phone size={15} /> {c.relative_phone}
+                            {c.relative_name && <span className="truncate text-slate-400">({c.relative_name})</span>}
                         </p>
                     </div>
                     <div className="mt-4 border-t border-slate-100 pt-3">
@@ -72,7 +73,7 @@ function ClientTable({ clients }) {
                     <thead>
                         <tr>
                             <th>Client</th>
-                            <th>Mobile</th>
+                            <th>Relative</th>
                             <th>City / Area</th>
                             <th>Service</th>
                             <th>Care team</th>
@@ -93,8 +94,9 @@ function ClientTable({ clients }) {
                                     </div>
                                 </td>
                                 <td>
-                                    <a href={`tel:${c.phone}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 text-slate-600 hover:text-brand-700">
-                                        <Phone size={13} /> {c.phone}
+                                    {c.relative_name && <p className="text-sm font-medium text-slate-700">{c.relative_name}</p>}
+                                    <a href={`tel:${c.relative_phone}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 text-slate-600 hover:text-brand-700">
+                                        <Phone size={13} /> {c.relative_phone}
                                     </a>
                                 </td>
                                 <td>
