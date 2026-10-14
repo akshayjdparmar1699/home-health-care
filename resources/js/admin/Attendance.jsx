@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { CalendarCheck, CheckCircle2, Clock, Coffee, Download, IndianRupee, Loader2, MapPin, Pencil, Square, Users, Wallet } from 'lucide-react';
+import { CalendarCheck, CheckCircle2, Clock, Coffee, Download, IndianRupee, Loader2, MapPin, Pencil, Play, Square, Users, Wallet } from 'lucide-react';
 import api, { errorMessage } from '../lib/api';
 import useFetch from '../lib/useFetch';
 import { formatDate, formatMinutes, formatMoney, formatTime, shiftLabel, toLocalInput, todayISO } from '../lib/format';
 import { Avatar, EmptyState, Field, Modal, PageHeader, Spinner, StatCard, StatusBadge, useToast } from '../components/ui';
 import { CheckInCell } from './CheckInPhoto';
 import ApproveDutyModal from './ApproveDutyModal';
+import StartDutyModal from './StartDutyModal';
 
 const monthStart = () => todayISO().slice(0, 8) + '01';
 
@@ -132,6 +133,15 @@ function EditModal({ record, onClose, onSaved }) {
     );
 }
 
+/** Duty started (or fully recorded) by the admin instead of with a selfie from the staff app. */
+function ByAdmin({ record }) {
+    return (
+        <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700" title={record.notes || undefined}>
+            <Play size={12} /> {record.ended_by && record.status === 'completed' ? 'Recorded by admin' : 'Started by admin'}
+        </span>
+    );
+}
+
 export default function Attendance() {
     const toast = useToast();
     const [params] = useSearchParams();
@@ -147,6 +157,7 @@ export default function Attendance() {
     const [view, setView] = useState('records');
     const [editing, setEditing] = useState(null);
     const [exporting, setExporting] = useState(false);
+    const [starting, setStarting] = useState(false);
     const { data, loading, reload } = useFetch('/admin/attendance', filters);
     const { data: staff } = useFetch('/admin/staff');
     const { data: clients } = useFetch('/admin/clients');
@@ -197,9 +208,14 @@ export default function Attendance() {
                 title="Attendance & Hours"
                 subtitle="Duty time, breaks and total hours of every staff"
                 action={
-                    <button className="btn-secondary" onClick={exportCsv} disabled={exporting}>
-                        {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} Export Excel
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                        <button className="btn-primary" onClick={() => setStarting(true)}>
+                            <Play size={16} /> Start duty
+                        </button>
+                        <button className="btn-secondary" onClick={exportCsv} disabled={exporting}>
+                            {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} Export Excel
+                        </button>
+                    </div>
                 }
             />
 
@@ -365,7 +381,7 @@ export default function Attendance() {
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <CheckInCell attendance={r} />
+                                                        {r.started_by && !r.has_selfie ? <ByAdmin record={r} /> : <CheckInCell attendance={r} />}
                                                     </td>
                                                     <td className="text-slate-600">{r.client?.name || '-'}</td>
                                                     <td className="text-slate-600">{formatTime(r.clock_in)}</td>
@@ -421,6 +437,11 @@ export default function Attendance() {
                                                 <CheckInCell attendance={r} size="h-16 w-16" />
                                             </div>
                                         )}
+                                        {r.started_by && !r.has_selfie && (
+                                            <div className="mt-3">
+                                                <ByAdmin record={r} />
+                                            </div>
+                                        )}
                                         <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 text-center">
                                             <div>
                                                 <p className="text-[11px] font-semibold text-slate-400">IN</p>
@@ -465,6 +486,7 @@ export default function Attendance() {
                 </>
             )}
 
+            <StartDutyModal open={starting} onClose={() => setStarting(false)} onSaved={() => reload(true)} />
             <EditModal record={editing} onClose={() => setEditing(null)} onSaved={() => reload(true)} />
             <ApproveDutyModal record={approving} onClose={() => setApproving(null)} onSaved={() => reload(true)} />
         </>

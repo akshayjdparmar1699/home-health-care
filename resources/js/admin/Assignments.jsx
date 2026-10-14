@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, Clock, History, MapPin, Pencil, Plus, RotateCcw, Share2, Trash2 } from 'lucide-react';
+import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, Clock, History, MapPin, Pencil, Play, Plus, RotateCcw, Share2, Trash2 } from 'lucide-react';
 import api, { errorMessage } from '../lib/api';
 import useFetch from '../lib/useFetch';
 import { formatDate, formatMoney, formatShift, shiftLabel } from '../lib/format';
@@ -8,6 +8,7 @@ import { Avatar, ConfirmDialog, EmptyState, PageHeader, SearchInput, Spinner, St
 import AssignmentForm from './AssignmentForm';
 import CloseAssignmentModal from './CloseAssignmentModal';
 import AssignmentShare from '../components/AssignmentShare';
+import StartDutyModal from './StartDutyModal';
 
 function People({ a }) {
     return (
@@ -40,6 +41,7 @@ export default function Assignments() {
     const [form, setForm] = useState({ open: false, assignment: null });
     const [closing, setClosing] = useState(null);
     const [sharing, setSharing] = useState(null);
+    const [startingFor, setStartingFor] = useState(null);
     const [toDelete, setToDelete] = useState(null);
     const [busy, setBusy] = useState(false);
     const { data, loading, reload } = useFetch('/admin/assignments', { search, status: tab });
@@ -191,7 +193,9 @@ export default function Assignments() {
                                 </div>
                                 {a.notes && <p className="mt-2 line-clamp-2 text-xs text-slate-500">{a.notes}</p>}
                                 <div className="mt-3 flex items-center justify-between">
-                                    <StatusBadge status="active" label="Assigned" />
+                                    <button className="btn-ghost px-2.5 py-1.5 text-xs text-brand-700 hover:bg-brand-50" onClick={() => setStartingFor(a)} title="Start duty for this staff">
+                                        <Play size={14} /> Start duty
+                                    </button>
                                     <div className="flex gap-1">
                                         <button className="btn-ghost px-2.5 py-1.5 text-xs" onClick={() => setForm({ open: true, assignment: a })}>
                                             <Pencil size={14} /> Edit
@@ -214,6 +218,7 @@ export default function Assignments() {
             )}
 
             <AssignmentForm open={form.open} assignment={form.assignment} onClose={() => setForm({ open: false, assignment: null })} onSaved={() => reload(true)} />
+            <StartDutyModal open={!!startingFor} assignment={startingFor} onClose={() => setStartingFor(null)} />
             <AssignmentShare assignment={sharing} open={!!sharing} onClose={() => setSharing(null)} />
             <CloseAssignmentModal assignment={closing} onClose={() => setClosing(null)} onSaved={() => reload(true)} />
             <ConfirmDialog

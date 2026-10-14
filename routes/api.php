@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/assignments/{assignment}/reopen', [Admin\AssignmentController::class, 'reopen']);
         Route::get('/attendance', [Admin\AttendanceController::class, 'index']);
         Route::get('/attendance/export', [Admin\AttendanceController::class, 'export']);
+        Route::post('/attendance/start', [Admin\AttendanceController::class, 'start']);
         Route::put('/attendance/{attendance}', [Admin\AttendanceController::class, 'update']);
         Route::post('/attendance/{attendance}/close', [Admin\AttendanceController::class, 'close']);
         Route::get('/attendance/{attendance}/selfie', [Admin\AttendanceController::class, 'selfie']);

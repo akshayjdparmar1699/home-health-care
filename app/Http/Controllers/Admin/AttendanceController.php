@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Assignment;
 use App\Models\Attendance;
 use App\Notifications\DutyApproved;
+use App\Notifications\DutyRecordedByAdmin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -116,10 +118,63 @@ class AttendanceController extends Controller
         return response()->json($attendance->fresh(['staff:id,name', 'client:id,name', 'breaks']));
     }
 
+    /**
+     * Start a duty for a staff member who could not do it from the app (no selfie). With an end
+     * time the whole duty is recorded at once, e.g. one that was missed earlier.
+     */
+    public function start(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'assignment_id' => ['required', 'integer'],
+            'clock_in' => ['nullable', 'date', 'before_or_equal:'.now()->addMinutes(5)->toDateTimeString()],
+            'clock_out' => ['nullable', 'date', 'after:clock_in', 'before_or_equal:'.now()->addMinutes(5)->toDateTimeString()],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'clock_in.before_or_equal' => 'The start time cannot be in the future.',
+            'clock_out.before_or_equal' => 'The end time cannot be in the future.',
+            'clock_out.after' => 'The end time must be after the start time.',
+        ]);
+
+        $assignment = Assignment::current()->with(['staff', 'client:id,name'])->find($data['assignment_id']);
+        if (! $assignment) {
+            throw ValidationException::withMessages(['assignment_id' => 'Choose an active assignment.']);
+        }
+
+        $clockIn = isset($data['clock_in']) ? Carbon::parse($data['clock_in']) : now();
+        $clockOut = isset($data['clock_out']) ? Carbon::parse($data['clock_out']) : null;
+
+        // Only one open duty per staff member; a finished duty may be added any time.
+        if (! $clockOut && $assignment->staff->activeAttendance()) {
+            throw ValidationException::withMessages(['assignment_id' => "{$assignment->staff->name} is already on duty. End that duty first."]);
+        }
+
+        $attendance = new Attendance([
+            'staff_id' => $assignment->staff_id,
+            'client_id' => $assignment->client_id,
+            'assignment_id' => $assignment->id,
+            'duty_date' => $clockIn->toDateString(),
+            'clock_in' => $clockIn,
+            'status' => 'on_duty',
+            'notes' => $data['notes'] ?? null,
+            'started_by' => $request->user()->id,
+        ]);
+        $attendance->applyRates()->save();
+
+        if ($clockOut) {
+            $attendance->ended_by = $request->user()->id;
+            $attendance->finalize($clockOut);
+        }
+
+        $assignment->staff->notify(new DutyRecordedByAdmin($attendance));
+
+        return response()->json($attendance->fresh(['staff:id,name', 'client:id,name']), 201);
+    }
+
     /** End a duty that a staff member forgot to close. */
-    public function close(Attendance $attendance)
+    public function close(Request $request, Attendance $attendance)
     {
         if ($attendance->status !== 'completed') {
+            $attendance->ended_by = $request->user()->id;
             $attendance->finalize(now());
         }
 

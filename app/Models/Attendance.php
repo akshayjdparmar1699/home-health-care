@@ -14,7 +14,7 @@ class Attendance extends Model
         'clock_in_lat', 'clock_in_lng', 'clock_in_selfie_path', 'clock_in_address', 'clock_in_accuracy',
         'clock_out_lat', 'clock_out_lng',
         'break_minutes', 'worked_minutes', 'shift_hours', 'shift_type', 'staff_rate', 'client_rate', 'staff_amount', 'client_amount',
-        'manual_amount', 'approved_at', 'approved_by', 'payout_id', 'invoice_id', 'status', 'notes',
+        'manual_amount', 'approved_at', 'approved_by', 'payout_id', 'invoice_id', 'status', 'notes', 'started_by', 'ended_by',
     ];
 
     protected $appends = ['live_break_minutes', 'live_worked_minutes', 'current_break_start', 'live_staff_amount', 'live_client_amount', 'has_selfie'];
