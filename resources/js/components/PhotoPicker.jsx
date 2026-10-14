@@ -1,71 +1,150 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Camera, CameraOff, ImagePlus, Loader2, RefreshCw, X } from 'lucide-react';
 import { compressImage } from '../lib/staffForm';
+import { isStandalone, platform } from '../lib/pwa';
 
 /** WhatsApp, Facebook, Instagram etc. open links in their own browser, where the camera often does not work. */
 const inAppBrowser = () => /FBAN|FBAV|FB_IAB|Instagram|Line\/|; wv\)|WhatsApp/i.test(navigator.userAgent);
 
 const canUseLiveCamera = () => !!navigator.mediaDevices?.getUserMedia && window.isSecureContext;
 
-/** Plain-language reason and fix for a camera error, so staff can solve it themselves. */
+/** 'granted' | 'prompt' | 'denied' | 'unknown' (browsers without the Permissions API for camera). */
+async function cameraPermission() {
+    try {
+        return (await navigator.permissions.query({ name: 'camera' })).state;
+    } catch {
+        return 'unknown';
+    }
+}
+
+/**
+ * Once camera access is blocked the browser never asks again, so a website cannot re-request it.
+ * Show the exact steps for this phone to unblock it in settings.
+ */
+function unblockSteps() {
+    const os = platform();
+    if (os === 'ios') {
+        return isStandalone()
+            ? ['Open the iPhone Settings app.', 'Scroll down and tap Safari → Camera.', 'Choose "Allow" (or "Ask"), then come back to the app.']
+            : ['Tap "aA" in the Safari address bar → Website Settings.', 'Set Camera to "Allow".', 'Come back to this page.'];
+    }
+    if (os === 'android') {
+        return isStandalone()
+            ? ['Long-press the Yours Home app icon on your home screen → App info (ⓘ).', 'Tap Permissions → Camera → Allow.', 'Come back to the app: the camera opens by itself.']
+            : ['Tap the lock icon next to the website address at the top.', 'Tap Permissions → Camera → Allow (or "Reset permissions").', 'Still blocked? Phone Settings → Apps → Chrome → Permissions → Camera → Allow.'];
+    }
+    return ['Click the lock icon next to the website address.', 'Set Camera to "Allow".', 'Come back to this tab.'];
+}
+
+/** Plain-language reason and fix for a camera error other than "blocked". */
 function cameraProblem(err) {
     const name = err?.name || '';
     if (!window.isSecureContext) return 'The camera works only on the secure (https) app link.';
     if (inAppBrowser()) return 'This link is open inside WhatsApp / another app, which blocks the camera. Tap ⋮ (top right) → "Open in Chrome", then try again.';
-    if (name === 'NotAllowedError' || name === 'SecurityError')
-        return 'Camera permission is blocked. Tap the lock icon next to the website address → Permissions → Camera → Allow. If it is already allowed, open phone Settings → Apps → Chrome → Permissions → Camera → Allow.';
     if (name === 'NotReadableError' || name === 'AbortError') return 'The camera is busy in another app (video call, camera app). Close that app and try again.';
     if (name === 'NotFoundError' || name === 'OverconstrainedError') return 'No front camera was found on this device.';
     return 'The camera could not be started. Please try again.';
 }
 
+async function openFrontCamera() {
+    try {
+        return await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
+    } catch (e) {
+        // Some phones reject the size / facing hints: retry with any camera.
+        if (e.name === 'OverconstrainedError' || e.name === 'NotFoundError' || e.name === 'NotReadableError') {
+            return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+        throw e;
+    }
+}
+
 /**
  * In-app live camera (front camera on phones, webcam on computers). Taking the photo inside the
  * app avoids the phone's camera app, which on low-memory phones reloads the page and loses the photo.
+ *
+ * phase: 'checking' | 'ask' (explain before the browser's permission popup) | 'live' | 'blocked' | 'error'
  */
 function CameraScreen({ open, onClose, onCapture, onUseCameraApp }) {
     const videoRef = useRef(null);
+    const streamRef = useRef(null);
+    const [phase, setPhase] = useState('checking');
     const [error, setError] = useState('');
     const [ready, setReady] = useState(false);
-    const [attempt, setAttempt] = useState(0);
 
+    const stop = useCallback(() => {
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+    }, []);
+
+    const start = useCallback(async () => {
+        if (!canUseLiveCamera()) {
+            setError(cameraProblem({ name: 'NotSupportedError' }));
+            return setPhase('error');
+        }
+        setReady(false);
+        setPhase('live');
+        try {
+            const stream = await openFrontCamera();
+            stop();
+            streamRef.current = stream;
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.play().catch(() => {});
+            }
+        } catch (e) {
+            if (e.name === 'NotAllowedError' || e.name === 'SecurityError') {
+                if (inAppBrowser()) {
+                    setError(cameraProblem(e));
+                    return setPhase('error');
+                }
+                return setPhase('blocked');
+            }
+            setError(cameraProblem(e));
+            setPhase('error');
+        }
+    }, [stop]);
+
+    // Decide what to show first: straight to the camera, an explanation, or the unblock steps.
     useEffect(() => {
         if (!open) return;
-        let stream;
         let cancelled = false;
-        setError('');
-        setReady(false);
-
-        const start = async () => {
-            if (!canUseLiveCamera()) throw Object.assign(new Error('unsupported'), { name: 'NotSupportedError' });
-            try {
-                return await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
-            } catch (e) {
-                // Some phones reject the size / facing hints: retry with any camera.
-                if (e.name === 'OverconstrainedError' || e.name === 'NotFoundError' || e.name === 'NotReadableError') {
-                    return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                }
-                throw e;
-            }
-        };
-
-        start()
-            .then((s) => {
-                stream = s;
-                if (cancelled) return s.getTracks().forEach((t) => t.stop());
-                if (videoRef.current) {
-                    videoRef.current.srcObject = s;
-                    videoRef.current.play().catch(() => {});
-                }
-            })
-            .catch((e) => !cancelled && setError(cameraProblem(e)));
-
+        setPhase('checking');
+        cameraPermission().then((state) => {
+            if (cancelled) return;
+            if (state === 'denied') setPhase('blocked');
+            else if (state === 'prompt') setPhase('ask');
+            else start();
+        });
         return () => {
             cancelled = true;
-            stream?.getTracks().forEach((t) => t.stop());
+            stop();
         };
-    }, [open, attempt]);
+    }, [open, start, stop]);
+
+    // While blocked, open the camera by itself as soon as it is allowed in settings.
+    useEffect(() => {
+        if (!open || phase !== 'blocked') return;
+        let status;
+        const recheck = async () => {
+            if ((await cameraPermission()) !== 'denied') start();
+        };
+        const onVisible = () => document.visibilityState === 'visible' && recheck();
+        document.addEventListener('visibilitychange', onVisible);
+        window.addEventListener('focus', recheck);
+        navigator.permissions
+            ?.query({ name: 'camera' })
+            .then((s) => {
+                status = s;
+                s.onchange = recheck;
+            })
+            .catch(() => {});
+        return () => {
+            document.removeEventListener('visibilitychange', onVisible);
+            window.removeEventListener('focus', recheck);
+            if (status) status.onchange = null;
+        };
+    }, [open, phase, start]);
 
     if (!open) return null;
 
@@ -82,6 +161,8 @@ function CameraScreen({ open, onClose, onCapture, onUseCameraApp }) {
         canvas.toBlob((b) => b && onCapture(b), 'image/jpeg', 0.88);
     };
 
+    const panel = (children) => <div className="mx-5 max-h-full w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-5 text-slate-800">{children}</div>;
+
     return createPortal(
         <div className="safe-top safe-bottom fixed inset-0 z-[85] flex flex-col bg-black text-white">
             <div className="flex items-center justify-between px-4 py-3">
@@ -91,26 +172,88 @@ function CameraScreen({ open, onClose, onCapture, onUseCameraApp }) {
                 </button>
             </div>
 
-            <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden">
-                {error ? (
-                    <div className="mx-5 max-w-sm rounded-2xl bg-white p-5 text-slate-800">
-                        <p className="flex items-center gap-2 font-bold text-rose-600">
-                            <CameraOff size={18} /> Camera did not open
-                        </p>
-                        <p className="mt-2 text-sm text-slate-600">{error}</p>
-                        <div className="mt-4 grid gap-2">
-                            <button type="button" className="btn-primary py-3" onClick={() => setAttempt((a) => a + 1)}>
-                                <RefreshCw size={16} /> Try again
+            <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden py-4">
+                {phase === 'checking' && <Loader2 size={32} className="animate-spin text-white/70" />}
+
+                {phase === 'ask' &&
+                    panel(
+                        <>
+                            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+                                <Camera size={24} />
+                            </span>
+                            <p className="mt-3 text-lg font-bold">Allow the camera</p>
+                            <p className="mt-1 text-sm text-slate-600">
+                                Your phone will now ask to use the camera. Tap <b>Allow</b> so you can take your duty selfie.
+                            </p>
+                            <p lang="gu" className="mt-1 text-sm font-medium text-brand-700">
+                                હવે ફોન કેમેરા માટે પૂછશે, ત્યારે <b>Allow</b> દબાવો.
+                            </p>
+                            <button type="button" className="btn-primary mt-4 w-full py-3" onClick={start}>
+                                <Camera size={16} /> Open camera
                             </button>
-                            <button type="button" className="btn-secondary py-3" onClick={onUseCameraApp}>
-                                <Camera size={16} /> Use phone camera app
-                            </button>
-                        </div>
-                    </div>
-                ) : (
+                        </>,
+                    )}
+
+                {phase === 'blocked' &&
+                    panel(
+                        <>
+                            <p className="flex items-center gap-2 font-bold text-rose-600">
+                                <CameraOff size={18} /> Camera is blocked for this app
+                            </p>
+                            <p className="mt-1 text-sm text-slate-600">The phone will not ask again by itself. Turn it on once in settings:</p>
+                            <p lang="gu" className="mt-1 text-sm font-medium text-brand-700">
+                                કેમેરા બ્લોક છે. નીચેના સ્ટેપ્સથી Allow કરો.
+                            </p>
+                            <ol className="mt-3 space-y-2">
+                                {unblockSteps().map((text, i) => (
+                                    <li key={text} className="flex gap-2.5 text-sm text-slate-700">
+                                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-50 text-[11px] font-bold text-accent-600">
+                                            {i + 1}
+                                        </span>
+                                        {text}
+                                    </li>
+                                ))}
+                            </ol>
+                            <div className="mt-4 grid gap-2">
+                                <button type="button" className="btn-primary py-3" onClick={onUseCameraApp}>
+                                    <Camera size={16} /> Take selfie with phone camera
+                                </button>
+                                <button type="button" className="btn-secondary py-3" onClick={start}>
+                                    <RefreshCw size={16} /> I have allowed it, try again
+                                </button>
+                            </div>
+                        </>,
+                    )}
+
+                {phase === 'error' &&
+                    panel(
+                        <>
+                            <p className="flex items-center gap-2 font-bold text-rose-600">
+                                <CameraOff size={18} /> Camera did not open
+                            </p>
+                            <p className="mt-2 text-sm text-slate-600">{error}</p>
+                            <div className="mt-4 grid gap-2">
+                                <button type="button" className="btn-primary py-3" onClick={start}>
+                                    <RefreshCw size={16} /> Try again
+                                </button>
+                                <button type="button" className="btn-secondary py-3" onClick={onUseCameraApp}>
+                                    <Camera size={16} /> Use phone camera app
+                                </button>
+                            </div>
+                        </>,
+                    )}
+
+                {phase === 'live' && (
                     <>
                         <video
-                            ref={videoRef}
+                            ref={(el) => {
+                                videoRef.current = el;
+                                // The stream may arrive before or after this element mounts.
+                                if (el && streamRef.current && el.srcObject !== streamRef.current) {
+                                    el.srcObject = streamRef.current;
+                                    el.play().catch(() => {});
+                                }
+                            }}
                             autoPlay
                             playsInline
                             muted
@@ -123,7 +266,7 @@ function CameraScreen({ open, onClose, onCapture, onUseCameraApp }) {
                 )}
             </div>
 
-            {!error && (
+            {phase === 'live' && (
                 <div className="flex flex-col items-center gap-2 py-6">
                     <button
                         type="button"
