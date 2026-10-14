@@ -20,6 +20,7 @@ import Applications from './admin/Applications';
 import ApplicationReview from './admin/ApplicationReview';
 import ClientList from './admin/ClientList';
 import ClientDetail from './admin/ClientDetail';
+import Leads from './admin/Leads';
 import Assignments from './admin/Assignments';
 import Attendance from './admin/Attendance';
 import Billing from './admin/Billing';
@@ -84,6 +85,7 @@ function App() {
                 <Route path="applications/:id" element={<ApplicationReview />} />
                 <Route path="clients" element={<ClientList />} />
                 <Route path="clients/:id" element={<ClientDetail />} />
+                <Route path="leads" element={<Leads />} />
                 <Route path="assignments" element={<Assignments />} />
                 <Route path="attendance" element={<Attendance />} />
                 <Route path="billing" element={<Billing />} />

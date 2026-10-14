@@ -29,6 +29,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/staff/{staff}/reject', [Admin\StaffController::class, 'reject']);
         Route::get('/staff/{staff}/documents/{type}', [Admin\StaffController::class, 'document'])->whereIn('type', ['selfie', 'aadhaar_front', 'aadhaar_back']);
         Route::apiResource('staff', Admin\StaffController::class)->parameters(['staff' => 'staff']);
+        Route::apiResource('leads/staff', Admin\LeadStaffController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['staff' => 'staff'])->names('leads.staff');
+        Route::apiResource('leads/clients', Admin\LeadClientController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['clients' => 'client'])->names('leads.clients');
         Route::apiResource('clients', Admin\ClientController::class);
         Route::get('/clients/{client}/visits', [Admin\ClientVisitController::class, 'index']);
         Route::post('/clients/{client}/visits', [Admin\ClientVisitController::class, 'store']);

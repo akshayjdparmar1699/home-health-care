@@ -4,6 +4,7 @@ import {
     BarChart3,
     CalendarCheck,
     ClipboardList,
+    Inbox,
     LayoutDashboard,
     LogOut,
     Menu,
@@ -35,6 +36,7 @@ const groups = [
             { to: '/admin/staff', label: 'Staff', icon: Users },
             { to: '/admin/applications', label: 'Applications', icon: UserCheck, badge: true },
             { to: '/admin/clients', label: 'Clients', icon: UserRound },
+            { to: '/admin/leads', label: 'Leads', icon: Inbox },
             { to: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
             { to: '/admin/attendance', label: 'Attendance & Hours', icon: CalendarCheck },
         ],
@@ -58,6 +60,7 @@ const mobileNav = [
 
 const moreItems = [
     { to: '/admin/applications', label: 'Applications', icon: UserCheck, badge: true },
+    { to: '/admin/leads', label: 'Leads', icon: Inbox },
     { to: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
     { to: '/admin/billing', label: 'Client Bills', icon: ReceiptText },
     { to: '/admin/payouts', label: 'Staff Payments', icon: Wallet },
