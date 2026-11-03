@@ -24,7 +24,7 @@ class StaffController extends Controller
             ->when($request->city, fn ($q, $c) => $q->where('city', $c))
             ->when($request->filled('status'), fn ($q) => $q->where('is_active', $request->status === 'active'))
             ->withCount(['assignments as active_assignments_count' => fn ($q) => $q->current()])
-            ->orderBy('name')
+            ->latest()->latest('id')
             ->get();
 
         $open = Attendance::with('client:id,name')

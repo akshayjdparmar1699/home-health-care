@@ -22,7 +22,7 @@ class ClientController extends Controller
             ->when($request->filled('status'), fn ($q) => $q->where('is_active', $request->status === 'active'))
             ->when($request->city, fn ($q, $c) => $c === '__none' ? $q->whereNull('city') : $q->where('city', $c))
             ->with(['assignments' => fn ($q) => $q->current()->with('staff:id,name,designation')])
-            ->orderBy('name')
+            ->latest()->latest('id')
             ->get();
 
         return response()->json($clients);
