@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import api, { errorMessage } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { Avatar, Field, useToast } from '../components/ui';
+import { NotificationSetting } from '../components/NotificationToggle';
 
 function BusinessSettings() {
     const toast = useToast();
@@ -125,6 +126,8 @@ export default function Settings() {
                     </div>
                 </div>
             </div>
+
+            <NotificationSetting />
 
             <form onSubmit={submit} className="card space-y-4 p-5">
                 <div className="flex items-center gap-2">

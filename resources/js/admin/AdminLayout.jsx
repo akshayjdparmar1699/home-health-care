@@ -21,7 +21,6 @@ import api from '../lib/api';
 import { Avatar } from '../components/ui';
 import { BrandLogo, BrandMark } from '../components/Brand';
 import InstallGuide from '../components/InstallGuide';
-import NotificationGate from '../components/NotificationGate';
 import { refreshPush } from '../lib/push';
 import NotificationBell from '../components/NotificationBell';
 
@@ -177,7 +176,6 @@ export default function AdminLayout() {
             </main>
 
             <InstallGuide auto />
-            <NotificationGate />
 
             {/* More sheet (mobile) */}
             {moreOpen && (
