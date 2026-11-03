@@ -5,26 +5,26 @@ import { formatDate, formatMinutes, formatMoney, formatTime, shiftLabel } from '
 import { Field, Modal, useToast } from '../components/ui';
 import { CheckInCell } from './CheckInPhoto';
 
-/** Approve a finished duty's payment, optionally changing the staff pay / client charge first. */
+/** Approve a finished duty's payment. Staff pay can be changed; the client charge is fixed by the assignment. */
 export default function ApproveDutyModal({ record, onClose, onSaved }) {
     const toast = useToast();
-    const [form, setForm] = useState({ staff_amount: '', client_amount: '' });
+    const [form, setForm] = useState({ staff_amount: '' });
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        if (record) setForm({ staff_amount: String(record.staff_amount ?? 0), client_amount: String(record.client_amount ?? 0) });
+        if (record) setForm({ staff_amount: String(record.staff_amount ?? 0) });
     }, [record]);
 
     if (!record) return null;
 
     const pay = Number(form.staff_amount || 0);
-    const charge = Number(form.client_amount || 0);
-    const changed = pay !== Number(record.staff_amount) || charge !== Number(record.client_amount);
+    const charge = Number(record.client_amount || 0);
+    const changed = pay !== Number(record.staff_amount);
 
     const submit = async () => {
         setSaving(true);
         try {
-            await api.post(`/admin/attendance/${record.id}/approve`, { staff_amount: pay, client_amount: charge });
+            await api.post(`/admin/attendance/${record.id}/approve`, { staff_amount: pay });
             toast(`Approved. ${record.staff?.name || 'Staff'} can now see ${formatMoney(pay)} in earnings.`);
             onSaved?.();
             onClose();
@@ -82,22 +82,15 @@ export default function ApproveDutyModal({ record, onClose, onSaved }) {
                     <Field label="Staff pay (₹)" hint="Staff sees this in earnings">
                         <input type="number" min="0" className="input" value={form.staff_amount} onChange={(e) => setForm({ ...form, staff_amount: e.target.value })} />
                     </Field>
-                    <Field label="Client charge (₹)" hint={record.invoice_id ? 'Already billed, locked' : 'Used for the client bill'}>
-                        <input
-                            type="number"
-                            min="0"
-                            className="input"
-                            value={form.client_amount}
-                            disabled={!!record.invoice_id}
-                            onChange={(e) => setForm({ ...form, client_amount: e.target.value })}
-                        />
+                    <Field label="Client charge (₹)" hint={record.invoice_id ? 'Already billed, locked' : 'Fixed, set on the assignment'}>
+                        <input type="number" className="input bg-slate-50 font-semibold text-slate-700" value={charge} readOnly disabled />
                     </Field>
                 </div>
                 <div className={`flex items-center justify-between rounded-2xl px-4 py-3 ${charge - pay >= 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-700'}`}>
                     <span className="text-sm font-semibold">Your profit on this duty</span>
                     <span className="text-lg font-extrabold">{formatMoney(charge - pay)}</span>
                 </div>
-                {changed && <p className="text-xs text-slate-500">Amounts changed from the shift rate. The new amounts will be used for payment and billing.</p>}
+                {changed && <p className="text-xs text-slate-500">Staff pay changed from the shift rate. The new amount will be used for payment.</p>}
             </div>
         </Modal>
     );

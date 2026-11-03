@@ -182,14 +182,14 @@ class AttendanceController extends Controller
     }
 
     /**
-     * Approve a completed duty's payment (optionally with changed amounts). Only approved duties
-     * count as staff earnings and can be paid out / billed. The staff member is notified.
+     * Approve a completed duty's payment (the staff pay can be changed first). The client charge is
+     * fixed: it is the rate set on the assignment and is never taken from the request. Only approved
+     * duties count as staff earnings and can be paid out / billed. The staff member is notified.
      */
     public function approve(Request $request, Attendance $attendance): JsonResponse
     {
         $data = $request->validate([
             'staff_amount' => ['required', 'numeric', 'min:0'],
-            'client_amount' => ['required', 'numeric', 'min:0'],
         ]);
 
         if ($attendance->status !== 'completed') {
@@ -201,7 +201,6 @@ class AttendanceController extends Controller
 
         $attendance->fill([
             'staff_amount' => round((float) $data['staff_amount'], 2),
-            'client_amount' => $attendance->invoice_id ? $attendance->client_amount : round((float) $data['client_amount'], 2),
             'manual_amount' => true,
             'approved_at' => now(),
             'approved_by' => $request->user()->id,
