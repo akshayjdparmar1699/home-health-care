@@ -109,7 +109,7 @@ export default function AssignmentShare({ assignment: a, open, onClose, title = 
                         message={toClient}
                         onMore={() => setMore({ text: toClient, phone: a.client?.relative_phone, name: a.client?.relative_name || a.client?.name })}
                     />
-                    <p className="text-center text-[11px] text-slate-400">The staff message has their pay. The client message has no prices and no staff phone number.</p>
+                    <p className="text-center text-[11px] text-slate-400">The staff message has their pay but no client phone number. The client message has no prices and no staff phone number.</p>
                 </div>
             </Modal>
             <ShareSheet

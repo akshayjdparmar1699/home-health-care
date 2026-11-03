@@ -8,7 +8,7 @@ function shiftLine(a) {
     return [label, time].filter(Boolean).join(', ');
 }
 
-/** WhatsApp message to the staff member about their new client. Never includes the client charge. */
+/** WhatsApp message to the staff member about their new client. Never includes the client charge or any client / relative phone number. */
 export function staffMessage(a, business, appUrl) {
     const c = a.client || {};
     const address = [c.address, c.city, c.pincode].filter(Boolean).join(', ');
@@ -18,7 +18,7 @@ export function staffMessage(a, business, appUrl) {
         '',
         `*Client:* ${c.name}${c.age ? ` (${c.age} yrs)` : ''}`,
         address && `*Address:* ${address}`,
-        c.relative_phone && `*Relative:* ${[c.relative_name, c.relative_phone].filter(Boolean).join(', ')}`,
+        c.relative_name && `*Relative:* ${c.relative_name}`,
         a.shift_hours && `*Shift:* ${shiftLine(a)}`,
         `*Starting:* ${formatDate(a.start_date)}`,
         a.staff_rate ? `*Your pay:* ${formatMoney(a.staff_rate)} per shift` : null,
