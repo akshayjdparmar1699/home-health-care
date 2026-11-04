@@ -15,6 +15,7 @@ export default function AssignmentForm({ open, onClose, assignment, preset = {},
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [applyToPast, setApplyToPast] = useState(false);
+    const [customHours, setCustomHours] = useState(false); // "Other": admin types any hours
     const [shareFor, setShareFor] = useState(null);
     const [staff, setStaff] = useState([]);
     const [clients, setClients] = useState([]);
@@ -23,6 +24,7 @@ export default function AssignmentForm({ open, onClose, assignment, preset = {},
         if (!open) return;
         setErrors({});
         setApplyToPast(false);
+        setCustomHours(!!assignment?.shift_hours && !SHIFTS.includes(Number(assignment.shift_hours)));
         setForm(
             assignment
                 ? {
@@ -133,20 +135,48 @@ export default function AssignmentForm({ open, onClose, assignment, preset = {},
                 <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:col-span-2">
                     <p className="mb-3 text-sm font-bold text-slate-800">Shift & payment</p>
                     <Field label="Shift *" error={errors.shift_hours}>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-4 gap-2">
                             {SHIFTS.map((h) => (
                                 <button
                                     key={h}
                                     type="button"
-                                    onClick={() => setForm({ ...form, shift_hours: h })}
+                                    onClick={() => {
+                                        setCustomHours(false);
+                                        setForm({ ...form, shift_hours: h });
+                                    }}
                                     className={`rounded-xl border-2 py-2.5 text-sm font-bold transition ${
-                                        Number(form.shift_hours) === h ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
+                                        !customHours && Number(form.shift_hours) === h ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
                                     }`}
                                 >
-                                    {h} hours
+                                    {h} hrs
                                 </button>
                             ))}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setCustomHours(true);
+                                    if (SHIFTS.includes(Number(form.shift_hours))) setForm({ ...form, shift_hours: '' });
+                                }}
+                                className={`rounded-xl border-2 py-2.5 text-sm font-bold transition ${
+                                    customHours ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
+                                }`}
+                            >
+                                Other
+                            </button>
                         </div>
+                        {customHours && (
+                            <input
+                                type="number"
+                                min="1"
+                                max="24"
+                                step="1"
+                                className="input mt-2"
+                                value={form.shift_hours}
+                                onChange={set('shift_hours')}
+                                placeholder="Enter hours, e.g. 10"
+                                required
+                            />
+                        )}
                     </Field>
                     <Field label="Day or night *" error={errors.shift_type} className="mt-3">
                         <div className="grid grid-cols-2 gap-2">

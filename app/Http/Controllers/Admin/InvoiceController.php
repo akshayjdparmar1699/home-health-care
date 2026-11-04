@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use App\Models\Client;
 use App\Models\ClientVisit;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Setting;
 use App\Support\ShareLinks;
 use Illuminate\Http\Request;
@@ -89,7 +90,7 @@ class InvoiceController extends Controller
             'sessions' => $rows->count(),
             'visits' => $visits->count(),
             'minutes' => (int) $rows->sum('worked_minutes'),
-            'items' => [...$this->buildItems($rows), ...$this->visitItems($visits)],
+            'items' => $this->withSectionLabels([...$this->buildItems($rows), ...$this->visitItems($visits)]),
             'subtotal' => round($rows->sum('client_amount') + $visits->sum('amount'), 2),
             'missing_rate' => $rows->where('client_amount', '<=', 0)->count(),
         ]);
@@ -154,8 +155,7 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        $invoice->load(['client', 'items', 'attendances' => fn ($q) => $q->with('staff:id,name')->orderBy('clock_in')]);
-        $invoice->attendances->each->makeHidden(['staff_rate', 'staff_amount', 'live_staff_amount']);
+        $invoice->load(['client', 'items']);
 
         return response()->json([
             'invoice' => $invoice,
@@ -204,29 +204,49 @@ class InvoiceController extends Controller
         return response()->json(['message' => 'Bill deleted']);
     }
 
-    /** One line per staff member, shift (length + day / night) and per-shift rate. */
+    /**
+     * Duty lines grouped under Day / Night / Full day (24 hrs). One line per staff member and
+     * per-duty charge, so every line reads: number of duties x charge = amount.
+     *
+     * @return array<int, array{description: string, section: string, staff_id: ?int, minutes: int, quantity: int, unit: string, rate: float, amount: float}>
+     */
     private function buildItems($rows): array
     {
-        return $rows->groupBy(fn ($r) => $r->staff_id.'|'.$r->shift_hours.'|'.$r->shift_type.'|'.$r->client_rate)
+        $order = array_keys(InvoiceItem::SECTIONS);
+
+        return $rows
+            ->groupBy(fn ($r) => InvoiceItem::sectionFor($r->shift_hours, $r->shift_type).'|'.$r->staff_id.'|'.$r->shift_hours.'|'.$r->client_amount)
             ->map(function ($group) {
                 $first = $group->first();
-                $staff = $first->staff;
+                $section = InvoiceItem::sectionFor($first->shift_hours, $first->shift_type);
                 $count = $group->count();
-                $shift = $first->shift_hours
-                    ? $first->shift_hours.'-hour '.($first->shift_type ? ucfirst($first->shift_type).' ' : '').'shift'
-                    : 'Duty';
+                $name = $first->staff?->name ?? 'Staff';
+                $rate = (float) $first->client_amount;
 
                 return [
-                    'description' => $shift.' - '.trim(($staff?->designation ? $staff->designation.' ' : '').($staff?->name ?? 'Staff')),
+                    'description' => $section === 'full' || ! $first->shift_hours ? $name : "{$name} ({$first->shift_hours} hrs)",
+                    'section' => $section,
                     'staff_id' => $first->staff_id,
                     'minutes' => (int) $group->sum('worked_minutes'),
                     'quantity' => $count,
-                    'unit' => $count === 1 ? 'shift' : 'shifts',
-                    'rate' => $first->client_rate,
-                    'amount' => round($group->sum('client_amount'), 2),
+                    'unit' => $count === 1 ? 'duty' : 'duties',
+                    'rate' => $rate,
+                    'amount' => round($count * $rate, 2),
                 ];
             })
+            ->sortBy(fn ($item) => array_search($item['section'], $order))
             ->values()->all();
+    }
+
+    /**
+     * Adds the heading text the bill screens print above a line.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function withSectionLabels(array $items): array
+    {
+        return array_map(fn (array $item) => $item + ['section_label' => InvoiceItem::SECTIONS[$item['section'] ?? ''] ?? null], $items);
     }
 
     /**

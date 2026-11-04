@@ -14,7 +14,7 @@ class SharedDocumentController extends Controller
 {
     public function invoice(Invoice $invoice): View
     {
-        $invoice->load(['client', 'items', 'attendances' => fn ($q) => $q->with('staff:id,name')->orderBy('clock_in')]);
+        $invoice->load(['client', 'items']);
 
         return view('share.invoice', ['invoice' => $invoice, 'business' => Setting::allValues()]);
     }

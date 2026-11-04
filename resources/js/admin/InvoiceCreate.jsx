@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, Loader2, Plus, Trash2 } from 'lucide-react';
 import api, { errorMessage } from '../lib/api';
-import { formatMinutes, formatMoney, lastMonthRange, monthStartISO, todayISO } from '../lib/format';
+import { formatMoney, groupBySection, lastMonthRange, monthStartISO, todayISO } from '../lib/format';
 import { Field, PageHeader, useToast } from '../components/ui';
 
 export default function InvoiceCreate() {
@@ -121,7 +121,7 @@ export default function InvoiceCreate() {
                             <h2 className="font-bold text-slate-900">Bill items</h2>
                             {preview && (
                                 <p className="text-xs text-slate-400">
-                                    {preview.sessions} shifts{preview.visits ? ` + ${preview.visits} visit${preview.visits > 1 ? 's' : ''}` : ''} · {formatMinutes(preview.minutes)} of care
+                                    {preview.sessions} duties{preview.visits ? ` + ${preview.visits} visit${preview.visits > 1 ? 's' : ''}` : ''}
                                 </p>
                             )}
                         </div>
@@ -130,7 +130,7 @@ export default function InvoiceCreate() {
                             <div className="flex gap-2 bg-amber-50 px-5 py-3 text-sm text-amber-800">
                                 <AlertTriangle size={18} className="shrink-0" />
                                 <span>
-                                    {preview.missing_rate} shifts have no client charge, so they show ₹0. Set the per-shift charge in the{' '}
+                                    {preview.missing_rate} duties have no client charge, so they show ₹0. Set the per-shift charge in the{' '}
                                     <Link to="/admin/assignments" className="font-semibold underline">
                                         assignment
                                     </Link>{' '}
@@ -164,15 +164,31 @@ export default function InvoiceCreate() {
                                             </td>
                                         </tr>
                                     ) : (
-                                        preview?.items.map((it, i) => (
-                                            <tr key={i}>
-                                                <td className="whitespace-normal font-medium text-slate-800">{it.description}</td>
-                                                <td className="text-right">{it.quantity}</td>
-                                                <td className="text-right">{formatMoney(it.rate)}</td>
-                                                <td className="text-right font-semibold">{formatMoney(it.amount, { decimals: true })}</td>
-                                                <td></td>
-                                            </tr>
-                                        ))
+                                        (() => {
+                                            const groups = groupBySection(preview?.items || []);
+                                            return groups.map((g) => (
+                                                <Fragment key={g.label || 'other'}>
+                                                    {(g.label || groups.length > 1) && (
+                                                        <tr className="bg-slate-50">
+                                                            <td colSpan={5} className="text-xs font-bold uppercase tracking-wider text-brand-700">
+                                                                {g.label || 'Other charges'}
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                    {g.items.map((it, i) => (
+                                                        <tr key={i}>
+                                                            <td className="whitespace-normal font-medium text-slate-800">{it.description}</td>
+                                                            <td className="text-right">
+                                                                {it.quantity} {it.unit}
+                                                            </td>
+                                                            <td className="text-right">{formatMoney(it.rate)}</td>
+                                                            <td className="text-right font-semibold">{formatMoney(it.amount, { decimals: true })}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    ))}
+                                                </Fragment>
+                                            ));
+                                        })()
                                     )}
                                     {extras.map((x, i) => (
                                         <tr key={`x${i}`}>

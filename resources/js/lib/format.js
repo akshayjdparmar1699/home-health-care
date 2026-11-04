@@ -112,3 +112,18 @@ export function shiftLabel(hours, type, { short = false } = {}) {
     const kind = type ? ` ${type === 'night' ? 'Night' : 'Day'}` : '';
     return `${hours} hr${kind}${short ? '' : ' shift'}`;
 }
+
+/** Bill lines grouped under their Day / Night / 24 hr heading, keeping the order they came in. */
+export function groupBySection(items) {
+    const groups = [];
+    items.forEach((item) => {
+        const label = item.section_label || null;
+        let group = groups.find((g) => g.label === label);
+        if (!group) {
+            group = { label, items: [] };
+            groups.push(group);
+        }
+        group.items.push(item);
+    });
+    return groups;
+}

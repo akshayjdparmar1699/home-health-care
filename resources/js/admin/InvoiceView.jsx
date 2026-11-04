@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Loader2, Printer, RotateCcw, Share2, Trash2 } from 'lucide-react';
 import api, { errorMessage } from '../lib/api';
 import useFetch from '../lib/useFetch';
-import { formatDate, formatMinutes, formatMoney, formatTime } from '../lib/format';
+import { formatDate, formatMoney, groupBySection } from '../lib/format';
 import { ConfirmDialog, Field, Modal, Spinner, StatusBadge, useToast } from '../components/ui';
 import { PAYMENT_METHODS } from './PayoutForm';
 import { BrandLogo } from '../components/Brand';
@@ -126,7 +126,6 @@ export default function InvoiceView() {
                         <p className="mt-1 font-semibold text-slate-800">
                             {formatDate(inv.period_from)} - {formatDate(inv.period_to)}
                         </p>
-                        <p className="text-sm text-slate-600">{formatMinutes(inv.minutes)} of care</p>
                     </div>
                 </div>
 
@@ -140,14 +139,28 @@ export default function InvoiceView() {
                         </tr>
                     </thead>
                     <tbody>
-                        {inv.items.map((it) => (
-                            <tr key={it.id} className="border-b border-slate-100">
-                                <td className="py-3 pr-2 font-medium text-slate-800">{it.description}</td>
-                                <td className="py-3 text-right text-slate-600">{it.quantity ? `${it.quantity} ${it.unit || ''}` : it.minutes ? `${(it.minutes / 60).toFixed(2)} hrs` : '-'}</td>
-                                <td className="py-3 text-right text-slate-600">{it.rate ? formatMoney(it.rate) : '-'}</td>
-                                <td className="py-3 text-right font-semibold text-slate-900">{formatMoney(it.amount, { decimals: true })}</td>
-                            </tr>
-                        ))}
+                        {(() => {
+                            const groups = groupBySection(inv.items);
+                            return groups.map((g) => (
+                                <Fragment key={g.label || 'other'}>
+                                    {(g.label || groups.length > 1) && (
+                                        <tr className="bg-slate-50 print:bg-transparent">
+                                            <td colSpan={4} className="py-2 text-xs font-bold uppercase tracking-wider text-brand-700">
+                                                {g.label || 'Other charges'}
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {g.items.map((it) => (
+                                        <tr key={it.id} className="border-b border-slate-100">
+                                            <td className="py-3 pr-2 font-medium text-slate-800">{it.description}</td>
+                                            <td className="py-3 text-right text-slate-600">{it.quantity ? `${it.quantity} ${it.unit || ''}` : it.minutes ? `${(it.minutes / 60).toFixed(2)} hrs` : '-'}</td>
+                                            <td className="py-3 text-right text-slate-600">{it.rate ? formatMoney(it.rate) : '-'}</td>
+                                            <td className="py-3 text-right font-semibold text-slate-900">{formatMoney(it.amount, { decimals: true })}</td>
+                                        </tr>
+                                    ))}
+                                </Fragment>
+                            ));
+                        })()}
                     </tbody>
                 </table>
 
@@ -190,26 +203,6 @@ export default function InvoiceView() {
                                 {biz.invoice_terms && <p className="mt-1 whitespace-pre-line text-slate-500">{biz.invoice_terms}</p>}
                             </div>
                         )}
-                    </div>
-                )}
-
-                {inv.attendances.length > 0 && (
-                    <div className="mt-8 border-t border-slate-100 pt-6">
-                        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Visit details</p>
-                        <table className="w-full text-xs">
-                            <tbody>
-                                {inv.attendances.map((a) => (
-                                    <tr key={a.id} className="border-b border-slate-50">
-                                        <td className="py-1.5 text-slate-600">{formatDate(a.duty_date)}</td>
-                                        <td className="py-1.5 text-slate-600">{a.staff?.name}</td>
-                                        <td className="py-1.5 text-slate-600">
-                                            {formatTime(a.clock_in)} - {formatTime(a.clock_out)}
-                                        </td>
-                                        <td className="py-1.5 text-right font-medium text-slate-800">{formatMinutes(a.worked_minutes)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
                     </div>
                 )}
 

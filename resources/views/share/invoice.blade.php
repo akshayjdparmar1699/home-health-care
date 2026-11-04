@@ -56,13 +56,21 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($invoice->items as $item)
-                    <tr class="border-b border-slate-100">
-                        <td class="py-3 pr-2 font-medium text-slate-800">{{ $item->description }}</td>
-                        <td class="py-3 text-right text-slate-600">{{ $item->quantity ? rtrim(rtrim(number_format($item->quantity, 2), '0'), '.').' '.$item->unit : '-' }}</td>
-                        <td class="py-3 text-right text-slate-600">{{ $item->rate ? $money($item->rate) : '-' }}</td>
-                        <td class="py-3 text-right font-semibold text-slate-900">{{ $money($item->amount) }}</td>
-                    </tr>
+                @php($groups = $invoice->items->groupBy(fn ($item) => $item->section_label ?? ''))
+                @foreach ($groups as $label => $items)
+                    @if ($label !== '' || $groups->count() > 1)
+                        <tr class="bg-slate-50 print:bg-transparent">
+                            <td colspan="4" class="py-2 text-xs font-bold uppercase tracking-wider text-brand-700">{{ $label !== '' ? $label : 'Other charges' }}</td>
+                        </tr>
+                    @endif
+                    @foreach ($items as $item)
+                        <tr class="border-b border-slate-100">
+                            <td class="py-3 pr-2 font-medium text-slate-800">{{ $item->description }}</td>
+                            <td class="py-3 text-right text-slate-600">{{ $item->quantity ? rtrim(rtrim(number_format($item->quantity, 2), '0'), '.').' '.$item->unit : '-' }}</td>
+                            <td class="py-3 text-right text-slate-600">{{ $item->rate ? $money($item->rate) : '-' }}</td>
+                            <td class="py-3 text-right font-semibold text-slate-900">{{ $money($item->amount) }}</td>
+                        </tr>
+                    @endforeach
                 @endforeach
             </tbody>
         </table>
@@ -96,24 +104,6 @@
                     @if ($business['invoice_terms'])<p class="mt-1 whitespace-pre-line text-slate-500">{{ $business['invoice_terms'] }}</p>@endif
                 </div>
             @endif
-        </div>
-    @endif
-
-    @if ($invoice->attendances->isNotEmpty())
-        <div class="mt-8 border-t border-slate-100 pt-6">
-            <p class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Visit details</p>
-            <table class="w-full text-xs">
-                <tbody>
-                    @foreach ($invoice->attendances as $a)
-                        <tr class="border-b border-slate-50">
-                            <td class="py-1.5 text-slate-600">{{ $a->duty_date->format('d M Y') }}</td>
-                            <td class="py-1.5 text-slate-600">{{ $a->staff?->name }}</td>
-                            <td class="py-1.5 text-slate-600">{{ $a->clock_in?->format('h:i A') }} - {{ $a->clock_out?->format('h:i A') }}</td>
-                            <td class="py-1.5 text-right text-slate-600">{{ $a->shift_hours ? $a->shift_hours.' hr '.($a->shift_type ? ucfirst($a->shift_type).' ' : '').'shift' : '' }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
         </div>
     @endif
 
