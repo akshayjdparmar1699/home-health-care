@@ -146,7 +146,7 @@ export default function Attendance() {
     const toast = useToast();
     const [params] = useSearchParams();
     const [filters, setFilters] = useState({
-        from: monthStart(),
+        from: shiftDays(29), // last 30 days, so a duty left unapproved at month end is still listed
         to: todayISO(),
         staff_id: params.get('staff_id') || '',
         client_id: params.get('client_id') || '',
